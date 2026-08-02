@@ -1,0 +1,27 @@
+# 맥이 폴더마다 자동으로 만드는 설정 파일
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# 윈도우가 자동으로 만드는 파일
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# 편집기 개인 설정 (기기마다 달라서 공유하지 않습니다)
+.vscode/
+.idea/
+*.swp
+*~
+
+# 로그와 임시 파일
+*.log
+.cache/
+tmp/
+
+# 혹시 도구를 쓰게 될 경우 대비
+node_modules/
+dist/
+.netlify/
