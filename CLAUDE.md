@@ -169,6 +169,8 @@ index.html     앱 본체
 ## 환경
 
 - 맥북과 윈도우 데스크톱을 번갈아 사용합니다.
+- 깃허브 인증은 `gh`(깃허브 CLI)로 합니다. 맥북은 인증 완료. **새 기기에서는
+  `gh auth login`을 한 번 실행**해야 푸시가 됩니다.
 - 줄바꿈 문자 통일을 위해 `.gitattributes`에 `* text=auto eol=lf`를 유지합니다.
 - 파일 이름의 대소문자를 항상 일치시킵니다. (로컬에서는 통과하지만 배포 서버에서 깨집니다.)
 
@@ -183,17 +185,14 @@ index.html     앱 본체
 - [x] 폴더 구조 확정
 - [x] 전역지침(`~/.claude/CLAUDE.md`)에서 "폴더별 CLAUDE.md 작성" 항목 삭제
 - [x] `git init`, `.gitignore`, `.gitattributes`, 첫 커밋
+- [x] 깃허브 연결 및 첫 푸시 — `daldalsam/info-class-apps` (비공개)
 
 ### 남은 것 (이 순서대로)
 
-1. [ ] 깃허브 푸시 — 원격은 `daldalsam/info-class-apps`로 연결해둠.
-       맥북에 깃허브 자격증명이 없어서 최초 1회 인증이 필요합니다.
-       (개인용 액세스 토큰을 만들어 푸시할 때 비밀번호 자리에 입력)
-       저장소는 **비공개**로 유지합니다.
-2. [ ] 첫 앱 설계 — `02-data/01-digital-data/lesson.md` (홈 탭에서 작성)
-3. [ ] 첫 앱 개발 — `02-data/01-digital-data/index.html`
-4. [ ] 넷리파이 연결 및 배포
-5. [ ] `index.html` — 메인 목차 페이지 (앱이 몇 개 쌓인 뒤)
+1. [ ] 첫 앱 설계 — `02-data/01-digital-data/lesson.md` (홈 탭에서 작성)
+2. [ ] 첫 앱 개발 — `02-data/01-digital-data/index.html`
+3. [ ] 넷리파이 연결 및 배포
+4. [ ] `index.html` — 메인 목차 페이지 (앱이 몇 개 쌓인 뒤)
 
 이후로는 `docs/textbook.md`의 「개발 순서」 표를 따라 단원별로 반복합니다.
 
