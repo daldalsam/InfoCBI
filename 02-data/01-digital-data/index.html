@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>점 몇 개면 될까?</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --ink: #0f172a;
+    --dim: #64748b;
+    --wave: #b3c0d1;      /* 원본 곡선 */
+    --step: #2563eb;      /* 점만으로 다시 그린 계단 곡선 */
+    --dot: #1e3a8a;       /* 채집점 */
+    --grid: #e8edf4;
+    --track: #dbe3ec;
+  }
+
+  * { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    height: 100vh;
+    height: 100dvh;       /* 모바일 주소창을 뺀 실제 높이 */
+    margin: 0;
+    padding: 14px 16px 10px;
+    overflow: hidden;     /* 한 화면 안에 다 들어가게 */
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  /* 결과부 — 화면에서 가장 크게 */
+  .stage {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+  }
+  .stage canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  /* 어느 선이 무엇인지 — 그림 위에 얹어서 세로 공간을 쓰지 않는다 */
+  .legend {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    font-size: 12.5px;
+    color: var(--dim);
+    pointer-events: none;
+  }
+  .legend i {
+    display: inline-block;
+    width: 16px; height: 3px;
+    margin-right: 6px;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+  .legend .sw-wave { background: var(--wave); }
+  .legend .sw-step { background: var(--step); }
+
+  /* 조작부 — 아래에 */
+  .panel { flex: none; }
+
+  .readout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 14px;
+    margin-bottom: 2px;
+    font-size: 15px;
+    color: var(--dim);
+  }
+  .readout b {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--step);
+    font-variant-numeric: tabular-nums;
+  }
+  .readout .arrow { color: #94a3b8; }
+
+  .ends {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--dim);
+  }
+
+  input[type=range] {
+    width: 100%;
+    height: 44px;            /* 손가락으로도 잡히는 크기 */
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  input[type=range]:focus { outline: none; }
+  input[type=range]::-webkit-slider-runnable-track {
+    height: 10px; border-radius: 999px; background: var(--track);
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 30px; height: 30px; margin-top: -10px;
+    border-radius: 50%; background: var(--dot);
+    border: 3px solid #fff;
+    box-shadow: 0 1px 4px rgba(15, 23, 42, .35);
+  }
+  input[type=range]::-moz-range-track {
+    height: 10px; border-radius: 999px; background: var(--track);
+  }
+  input[type=range]::-moz-range-thumb {
+    width: 26px; height: 26px;
+    border-radius: 50%; background: var(--dot);
+    border: 3px solid #fff;
+  }
+</style>
+</head>
+<body>
+
+  <h1>점 몇 개면 이 곡선을 원본이라 할 수 있을까?</h1>
+
+  <div class="stage">
+    <canvas id="stage"></canvas>
+    <div class="legend">
+      <span><i class="sw-wave"></i>실제 곡선</span>
+      <span><i class="sw-step"></i>점으로 다시 그린 것</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="readout">
+      <span>채집한 점 <b id="count">2</b> 개</span>
+      <span class="arrow">→</span>
+      <span>저장할 숫자 <b id="stored">2</b> 개</span>
+    </div>
+    <input type="range" id="precision" min="0" max="100" step="1" value="18"
+           autocomplete="off" aria-label="채집 간격">
+    <div class="ends"><span>듬성듬성</span><span>촘촘하게</span></div>
+  </div>
+
+<script>
+(function () {
+  const canvas  = document.getElementById('stage');
+  const ctx     = canvas.getContext('2d');
+  const slider   = document.getElementById('precision');
+  const countEl  = document.getElementById('count');
+  const storedEl = document.getElementById('stored');
+  const stage    = canvas.parentElement;
+
+  // 그림이 테두리에 붙지 않도록 안쪽 여백
+  const PAD = { top: 20, right: 16, bottom: 20, left: 16 };
+
+  // 원본 곡선. t(0~1)을 넣으면 -1~1 값이 나온다.
+  // 느린 물결 + 중간 물결 + 잔물결을 겹쳤다. 잔물결이 있어야
+  // 점을 듬성듬성 찍었을 때 원본과 확실히 달라진다.
+  function wave(t) {
+    return 0.58 * Math.sin(2 * Math.PI * 1.0 * t)
+         + 0.27 * Math.sin(2 * Math.PI * 2.7 * t + 0.9)
+         + 0.15 * Math.sin(2 * Math.PI * 5.3 * t + 2.1);
+  }
+
+  // 캔버스 크기(CSS 픽셀). 그릴 때마다 읽는다.
+  let W = 0, H = 0;
+
+  const toX = t => PAD.left + t * (W - PAD.left - PAD.right);
+  const toY = v => PAD.top + (1 - v) / 2 * (H - PAD.top - PAD.bottom);
+
+  // 슬라이더 값 -> 채집점 개수(2 ~ 300).
+  // 그냥 비례하게 하면 재미있는 구간(점 2~30개)이 슬라이더 왼쪽 끝에
+  // 몰린다. 제곱을 써서 그 구간이 슬라이더 절반을 차지하게 했다.
+  function sampleCount() {
+    const v = Number(slider.value) / 100;
+    return Math.round(2 + 298 * Math.pow(v, 2.5));
+  }
+
+  function draw() {
+    const n = sampleCount();
+    countEl.textContent = n;
+    storedEl.textContent = n;   // 점 하나가 숫자 하나다
+
+    ctx.clearRect(0, 0, W, H);
+
+    // 가운데 기준선
+    ctx.beginPath();
+    ctx.moveTo(toX(0), toY(0));
+    ctx.lineTo(toX(1), toY(0));
+    ctx.strokeStyle = getVar('--grid');
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // 원본 곡선 — 화면 가로 픽셀만큼 잘게 이어 그려서 매끄럽게 보인다
+    const steps = Math.max(300, Math.round(W));
+    ctx.beginPath();
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const x = toX(t), y = toY(wave(t));
+      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = getVar('--wave');
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    // 일정한 간격으로 곡선 위 값을 채집한다. 컴퓨터가 가진 건 이 목록뿐이다.
+    const pts = [];
+    for (let i = 0; i < n; i++) {
+      const t = i / (n - 1);
+      pts.push({ x: toX(t), y: toY(wave(t)) });
+    }
+
+    // 채집한 점만으로 다시 그린 계단 곡선.
+    // 다음 점을 만날 때까지 값을 그대로 유지(가로)하고, 만나면 갈아탄다(세로).
+    // 사이에 있던 곡선의 모습은 알 수 없으니 이렇게밖에 그릴 수 없다.
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 1; i < n; i++) {
+      ctx.lineTo(pts[i].x, pts[i - 1].y);   // 가로로 유지
+      ctx.lineTo(pts[i].x, pts[i].y);       // 세로로 갈아타기
+    }
+    ctx.strokeStyle = getVar('--step');
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'miter';                 // 계단 모서리를 뭉개지 않게
+    ctx.stroke();
+
+    // 채집점 — 점이 많아지면 반지름을 줄여야 뭉치지 않는다
+    const r = n > 140 ? 1.7 : n > 60 ? 2.3 : 3.4;
+    ctx.fillStyle = getVar('--dot');
+    for (const p of pts) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // CSS 변수에 적어둔 색을 자바스크립트에서 꺼내 쓴다
+  const styles = getComputedStyle(document.documentElement);
+  function getVar(name) { return styles.getPropertyValue(name).trim(); }
+
+  // 화면 크기가 바뀌면 캔버스를 다시 잡는다.
+  // 화면 배율(devicePixelRatio)을 곱해야 선이 흐릿하지 않다.
+  function resize() {
+    const dpr = window.devicePixelRatio || 1;
+    W = stage.clientWidth;
+    H = stage.clientHeight;
+    canvas.width  = Math.round(W * dpr);
+    canvas.height = Math.round(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    draw();
+  }
+
+  new ResizeObserver(resize).observe(stage);
+  slider.addEventListener('input', draw);
+  resize();
+})();
+</script>
+</body>
+</html>

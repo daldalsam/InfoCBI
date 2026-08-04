@@ -222,19 +222,19 @@ teacher/index.html    교사용. 단원별 수업 설계 안내(차시 계획까
 - [x] 전역지침(`~/.claude/CLAUDE.md`)에서 "폴더별 CLAUDE.md 작성" 항목 삭제
 - [x] `git init`, `.gitignore`, `.gitattributes`, 첫 커밋
 - [x] 깃허브 연결 및 첫 푸시 — `daldalsam/info-class-apps` (비공개)
+- [x] 첫 앱 설계 — `02-data/01-digital-data/lesson.md` (홈 탭에서 작성)
+- [x] 첫 앱 개발 — `02-data/01-digital-data/index.html`
 
 ### 남은 것 (이 순서대로)
 
-1. [ ] 첫 앱 설계 — `02-data/01-digital-data/lesson.md` (홈 탭에서 작성)
-2. [ ] 첫 앱 개발 — `02-data/01-digital-data/index.html`
-3. [ ] 최상위 `index.html` — **학생용.** 단원 앱 링크만. 큼직하고 짧게.
+1. [ ] 최상위 `index.html` — **학생용.** 단원 앱 링크만. 큼직하고 짧게.
        **배포보다 먼저 만듭니다.** 루트에 없으면 배포 주소를 열었을 때
        첫 화면이 없어서 학생에게 긴 경로를 줘야 합니다.
-4. [ ] `teacher/index.html` — **교사용.** 단원별 수업 설계 안내(차시 계획까지),
+2. [ ] `teacher/index.html` — **교사용.** 단원별 수업 설계 안내(차시 계획까지),
        클래스룸 등 학습 콘텐츠 안내, 학생용 앱 링크.
-5. [ ] `netlify.toml` — `.md` 파일 직접 접근을 404로 차단
-6. [ ] 넷리파이 연결 및 배포 — 배포 후 `.md` 주소를 직접 열어 차단 확인
-7. [ ] 두 페이지 다듬기 — 앱이 서너 개 쌓인 뒤에 분류와 배치를 정리
+3. [ ] `netlify.toml` — `.md` 파일 직접 접근을 404로 차단
+4. [ ] 넷리파이 연결 및 배포 — 배포 후 `.md` 주소를 직접 열어 차단 확인
+5. [ ] 두 페이지 다듬기 — 앱이 서너 개 쌓인 뒤에 분류와 배치를 정리
 
 이후로는 `docs/textbook.md`의 「개발 순서」 표를 따라 단원별로 반복합니다.
 
