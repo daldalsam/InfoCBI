@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>그림일까, 글자일까, 수일까?</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --ink: #0f172a;
+    --dim: #64748b;
+    --accent: #2563eb;
+    --card: #ffffff;
+    --line: #e2e8f0;
+    --off: #f1f5f9;        /* 꺼진 비트 칸 */
+    --on: #1e3a8a;         /* 켜진 비트 칸 */
+    /* 칸 크기 — 좁은 화면에서는 줄어든다 */
+    --cell: min(46px, calc((100vw - 170px) / 8));
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px 18px 28px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+  }
+
+  h1 {
+    margin: 0 0 2px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hint { margin: 0 0 16px; font-size: 14px; color: var(--dim); }
+
+  /* 격자 + 글자 + 수 — 행 높이가 같아서 저절로 줄이 맞는다 */
+  .board {
+    display: flex;
+    align-items: flex-start;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .block .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dim);
+    margin-bottom: 6px;
+    text-align: center;
+  }
+
+  .bits {
+    display: grid;
+    grid-template-columns: repeat(8, var(--cell));
+    grid-auto-rows: var(--cell);
+    gap: 3px;
+    touch-action: none;      /* 나중에 드래그로 그릴 때 화면이 밀리지 않게 */
+  }
+  .bits button {
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--off);
+    color: #94a3b8;
+    font-size: max(10px, calc(var(--cell) * 0.28));
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .bits button.on {
+    background: var(--on);
+    border-color: var(--on);
+    color: rgba(255, 255, 255, .75);
+  }
+  .bits button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  .col {
+    display: grid;
+    grid-auto-rows: var(--cell);
+    align-items: center;
+    row-gap: 3px;
+  }
+  .col .v {
+    text-align: center;
+    font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    background: var(--card);
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+    min-width: 44px;
+    line-height: var(--cell);
+  }
+  .chars .v { font-size: calc(var(--cell) * 0.55); }
+  .nums  .v { font-size: calc(var(--cell) * 0.42); color: var(--dim); min-width: 52px; }
+  .chars .v.blank { color: #cbd5e1; }
+
+  /* 그림으로 보면 — 격자선 없이 순수한 픽셀만 */
+  .pic canvas {
+    width: calc(var(--cell) * 3.6);
+    height: calc(var(--cell) * 3.6);
+    image-rendering: pixelated;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .1);
+    display: block;
+  }
+
+  /* 극단값으로 한 번에 가는 버튼 */
+  .extremes {
+    margin-top: 10px;
+    display: flex;
+    gap: 8px;
+  }
+  .extremes button {
+    flex: 1;
+    height: 40px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .extremes button:active { background: var(--off); }
+
+  /* 좁은 화면 — 여백을 줄이고, 글자·수 열이 격자 옆에 남을 만큼만
+     칸을 키운다. (여백 24 + 열 78 + 열 사이 20 + 격자 틈 21 = 143 예약,
+     여유 7을 더해 150) */
+  @media (max-width: 460px) {
+    body { padding: 12px 12px 20px; }
+    :root { --cell: calc((100vw - 150px) / 8); }
+    .board { gap: 10px; }
+    .col .v  { min-width: 36px; }
+    .nums .v { min-width: 42px; }
+    /* 열 제목이 열보다 넓으면 그만큼 자리를 차지하므로 짧게 줄인다 */
+    .label .full { display: none; }
+  }
+</style>
+</head>
+<body>
+
+  <h1>그림일까, 글자일까, 수일까?</h1>
+  <p class="hint">칸을 눌러 켜고 꺼 보세요.</p>
+
+  <div class="board">
+
+    <div class="block">
+      <div class="label">64개의 비트</div>
+      <div class="bits" id="bits"></div>
+      <div class="extremes">
+        <button type="button" id="all0">모두 0</button>
+        <button type="button" id="all1">모두 1</button>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="label">글자<span class="full">로 보면</span></div>
+      <div class="col chars" id="chars" aria-live="polite" aria-label="글자로 보면"></div>
+    </div>
+
+    <div class="block">
+      <div class="label">수<span class="full">로 보면</span></div>
+      <div class="col nums" id="nums" aria-live="polite" aria-label="수로 보면"></div>
+    </div>
+
+    <div class="block pic">
+      <div class="label">그림으로 보면</div>
+      <canvas id="pic" width="8" height="8" role="img"
+              aria-label="같은 비트를 그림으로 그린 것 — 켜진 칸이 검은 픽셀"></canvas>
+    </div>
+
+  </div>
+
+<script>
+(function () {
+  const N = 8;                          // 8×8 격자
+  const bits = new Uint8Array(N * N);   // 0 또는 1이 64개. 이것이 전부다.
+
+  const bitsEl  = document.getElementById('bits');
+  const charsEl = document.getElementById('chars');
+  const numsEl  = document.getElementById('nums');
+  const pic     = document.getElementById('pic').getContext('2d');
+
+  // 64개의 칸(버튼)과 행마다 글자 칸·수 칸을 만든다
+  const cellBtns = [];
+  for (let i = 0; i < N * N; i++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.i = i;
+    // 스크린리더가 어느 칸인지 말해줄 수 있게 행·열 이름을 붙인다
+    b.setAttribute('aria-label',
+      (Math.floor(i / N) + 1) + '행 ' + (i % N + 1) + '열');
+    // 키보드(엔터·스페이스)로 누른 경우만 여기서 처리한다.
+    // 마우스와 터치는 아래 드래그 그리기가 처리하므로, 여기서도 반응하면
+    // 한 번 눌렀는데 두 번 뒤집혀 제자리가 된다.
+    b.addEventListener('click', (e) => {
+      if (e.detail === 0) { bits[i] ^= 1; render(); }
+    });
+    bitsEl.appendChild(b);
+    cellBtns.push(b);
+  }
+
+  // 드래그로 그리기 — 처음 누른 칸을 뒤집고, 끌고 지나가는 칸들을
+  // 같은 값으로 칠한다. 이니셜이나 그림을 그릴 때 칸을 하나하나
+  // 누르지 않아도 되게 한다.
+  let painting = false;
+  let paint = 1;                 // 끌고 갈 때 칠할 값
+  let lastX = 0, lastY = 0;      // 직전 위치 — 빠른 드래그가 건너뛴 칸을 메운다
+  let activeId = null;           // 그리는 중인 손가락(포인터) 하나만 따라간다
+  function cellAt(x, y) {
+    const el = document.elementFromPoint(x, y);
+    return el && el.dataset && el.dataset.i !== undefined ? Number(el.dataset.i) : null;
+  }
+  bitsEl.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;  // 오른쪽·가운데 버튼은 그리기가 아니다
+    if (painting) return;        // 두 번째 손가락(손바닥·엄지)은 무시한다.
+                                 // 안 그러면 두 손가락 사이가 줄무늬로 칠해진다
+    const i = cellAt(e.clientX, e.clientY);
+    if (i === null) return;
+    painting = true;
+    activeId = e.pointerId;
+    // 포인터를 격자에 붙잡아 두면 격자 밖으로 나가도 이동·놓기 신호가
+    // 계속 온다. 밖에 있는 동안은 lastX/lastY만 갱신되고 칠해지지는
+    // 않아서, 다시 들어올 때 나간 지점과 직선으로 이어지는 오류가 없다
+    bitsEl.setPointerCapture(e.pointerId);
+    paint = bits[i] ^ 1;         // 누른 칸은 뒤집고, 그 값으로 계속 칠한다
+    bits[i] = paint;
+    lastX = e.clientX;
+    lastY = e.clientY;
+    cellBtns[i].focus({ preventScroll: true });
+    render();
+    e.preventDefault();
+  });
+  bitsEl.addEventListener('pointermove', (e) => {
+    if (!painting || e.pointerId !== activeId) return;
+    // 드래그가 빠르면 이벤트가 띄엄띄엄 오므로, 직전 위치에서
+    // 현재 위치까지 반 칸 간격으로 짚어가며 지나간 칸을 전부 칠한다
+    const stepPx = bitsEl.clientWidth / N / 2;
+    const dx = e.clientX - lastX, dy = e.clientY - lastY;
+    const steps = Math.max(1, Math.ceil(Math.hypot(dx, dy) / stepPx));
+    let changed = false;
+    for (let s = 1; s <= steps; s++) {
+      const i = cellAt(lastX + dx * s / steps, lastY + dy * s / steps);
+      if (i !== null && bits[i] !== paint) { bits[i] = paint; changed = true; }
+    }
+    lastX = e.clientX;
+    lastY = e.clientY;
+    if (changed) render();
+  });
+  // 그리던 손가락을 뗐을 때만 끝낸다 — 다른 손가락을 떼도 계속 그려진다
+  function stopPainting(e) {
+    if (e.pointerId === activeId) { painting = false; activeId = null; }
+  }
+  window.addEventListener('pointerup',     stopPainting);
+  window.addEventListener('pointercancel', stopPainting);
+  // 격자 위에서는 오른쪽 클릭 메뉴를 열지 않는다 (크롬북 두 손가락 탭)
+  bitsEl.addEventListener('contextmenu', (e) => e.preventDefault());
+
+  // 극단값 — 모두 0 / 모두 1
+  document.getElementById('all0').addEventListener('click', () => { bits.fill(0); render(); });
+  document.getElementById('all1').addEventListener('click', () => { bits.fill(1); render(); });
+  const charCells = [], numCells = [];
+  for (let r = 0; r < N; r++) {
+    const c = document.createElement('div');
+    c.className = 'v';
+    charsEl.appendChild(c);
+    charCells.push(c);
+    const n = document.createElement('div');
+    n.className = 'v';
+    numsEl.appendChild(n);
+    numCells.push(n);
+  }
+
+  // 한 행(8비트)을 왼쪽이 큰 자리(128)인 이진수로 읽는다
+  function rowValue(r) {
+    let v = 0;
+    for (let c = 0; c < N; c++) v = v * 2 + bits[r * N + c];
+    return v;
+  }
+
+  function render() {
+    // 비트 칸 — 켜짐/꺼짐과 1/0 표시
+    for (let i = 0; i < N * N; i++) {
+      cellBtns[i].className = bits[i] ? 'on' : '';
+      cellBtns[i].textContent = bits[i] ? '1' : '0';
+      cellBtns[i].setAttribute('aria-pressed', bits[i] ? 'true' : 'false');
+    }
+
+    // 행마다: 같은 8비트를 글자로도, 수로도 읽는다
+    for (let r = 0; r < N; r++) {
+      const v = rowValue(r);
+      // 문자 코드에 보이는 글자가 있는 값(33~126)만 글자로 나온다.
+      // 나머지는 ▯ — 깨진 글자처럼 보이는 것도 관찰거리다.
+      if (v >= 33 && v <= 126) {
+        charCells[r].textContent = String.fromCharCode(v);
+        charCells[r].classList.remove('blank');
+      } else {
+        charCells[r].textContent = '▯';
+        charCells[r].classList.add('blank');
+      }
+      numCells[r].textContent = v;
+    }
+
+    // 그림 — 같은 비트를 픽셀로. 켜짐 = 검정
+    pic.fillStyle = '#ffffff';
+    pic.fillRect(0, 0, N, N);
+    pic.fillStyle = '#0f172a';
+    for (let i = 0; i < N * N; i++) {
+      if (bits[i]) pic.fillRect(i % N, Math.floor(i / N), 1, 1);
+    }
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>
