@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>지도안 — 디지털 형태의 데이터 (2차시)</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --ink: #0f172a;
+    --dim: #64748b;
+    --accent: #2563eb;
+    --card: #ffffff;
+    --line: #e2e8f0;
+    --soft: #eff4fb;
+    --warn-bg: #fef2f2;
+    --warn-line: #fecaca;
+    --warn-ink: #991b1b;
+    --say-bg: #f0fdf4;
+    --say-ink: #166534;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0 0 60px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+    line-height: 1.65;
+  }
+  .topbar { background: var(--ink); color: #fff; padding: 14px 20px; }
+  .topbar .in {
+    max-width: 860px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: baseline;
+    flex-wrap: wrap; gap: 4px 16px;
+  }
+  .topbar b { font-size: 17px; letter-spacing: -0.01em; }
+  .topbar a { color: #93c5fd; text-decoration: none; font-size: 14px; }
+  .topbar a:hover { text-decoration: underline; }
+
+  .wrap { max-width: 860px; margin: 0 auto; padding: 26px 20px 0; }
+
+  .goalbox {
+    background: var(--soft);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 12px 16px;
+    font-size: 15px;
+    margin: 0 0 8px;
+  }
+  .note { font-size: 14px; color: var(--dim); margin: 10px 0 24px; }
+
+  .lesson {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+    margin-bottom: 22px;
+    padding: 22px 22px 18px;
+  }
+  .lesson h2 {
+    margin: 0 0 2px;
+    font-size: 19px;
+    letter-spacing: -0.01em;
+  }
+  .lesson .sub { color: var(--dim); font-size: 14px; margin: 0 0 14px; }
+
+  h3 { margin: 20px 0 8px; font-size: 15px; color: var(--accent); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 8px 0; }
+  th, td {
+    text-align: left; padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th { color: var(--dim); font-weight: 600; white-space: nowrap; }
+  td.min { white-space: nowrap; color: var(--dim); font-variant-numeric: tabular-nums; }
+  td.step { white-space: nowrap; font-weight: 600; }
+
+  .say {
+    display: block;
+    background: var(--say-bg);
+    color: var(--say-ink);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin: 6px 0 2px;
+    font-size: 14px;
+  }
+  .say::before { content: "발문 · "; font-weight: 700; }
+
+  .dont {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-line);
+    color: var(--warn-ink);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14.5px;
+    margin: 14px 0 4px;
+  }
+  .dont b { display: block; margin-bottom: 4px; }
+  .dont ul { margin: 0; padding-left: 20px; }
+  .dont li { margin: 3px 0; }
+
+  ul, ol { margin: 6px 0; padding-left: 22px; font-size: 15px; }
+  li { margin: 4px 0; }
+  p { margin: 6px 0; font-size: 15px; }
+
+  footer {
+    max-width: 860px; margin: 30px auto 0; padding: 0 20px;
+    font-size: 13px; color: var(--dim);
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="in">
+    <b>차시별 지도안 — 디지털 형태의 데이터</b>
+    <a href="index.html">← 교사용 첫 페이지</a>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="goalbox">
+    학생이 도달할 일반화: <b>디지털 표현은 연속적인 대상을 이산적인 단위로
+    나누어 나타내며, 단위를 잘게 나눌수록 원본에 가까워지지만 저장 공간이
+    늘어난다.</b><br>
+    이 문장은 교사의 나침반입니다. 수업에서 <b>먼저 말하지 않습니다</b> —
+    학생이 자기 말로 도달한 뒤 2차시 정리에서 함께 다듬습니다.
+  </div>
+  <p class="note">45분 기준. 시간은 학급 상황에 맞게 조절하세요.
+    앱: <a href="../02-data/01-digital-data/index.html">점 몇 개면 될까?</a></p>
+
+  <!-- ═══════ 1차시 ═══════ -->
+  <div class="lesson">
+    <h2>1차시 — 만져보고 기록하기</h2>
+    <p class="sub">관계 맺기 → 조사하기(앱) → 발견 기록 · 준비물: 학생 기기,
+      앱 주소, 클래스룸 과제(질문 1~3) 미리 게시, 음질 비교용 음원 2개</p>
+
+    <h3>진행 흐름</h3>
+    <table>
+      <tr><th style="width:52px">분</th><th style="width:92px">단계</th><th>교사가 하는 일</th></tr>
+      <tr>
+        <td class="min">0–8</td><td class="step">관계 맺기</td>
+        <td>옛날 게임 음악(또는 저음질 음원)과 요즘 음원을 이어서 들려준다.
+          <span class="say">"두 소리는 뭐가 다를까? 왜 다르게 들릴까?"</span>
+          <span class="say">"전화 속 목소리는 왜 실제 목소리와 다르게 들릴까?"</span>
+          나온 답을 판단하지 말고 칠판에 그대로 모은다. 이 답들은 2차시
+          정리에서 다시 꺼내 쓸 재료다.</td>
+      </tr>
+      <tr>
+        <td class="min">8–13</td><td class="step">앱 열기</td>
+        <td>주소 안내. 3분간 자유롭게 만지게 둔다(설명하지 않는다).
+          화면 구성을 묻는 학생에게는 "만져보면 알게 된다"고만.</td>
+      </tr>
+      <tr>
+        <td class="min">13–28</td><td class="step">조사하기</td>
+        <td>미션을 하나씩 제시한다.
+          <ol>
+            <li>슬라이더를 <b>양 끝</b>으로 밀어보기 — 각각 무슨 일이 생기는가</li>
+            <li>점이 2~3개일 때 파란 선은 회색 선을 얼마나 따라가는가</li>
+            <li>"이 정도면 원본으로 인정"이라고 할 최소 간격을 <b>스스로</b> 정하기</li>
+          </ol>
+          순회하며 개별 발문:
+          <span class="say">"방금 슬라이더를 왼쪽으로 밀었을 때 뭘 잃었어?"</span>
+          <span class="say">"점 몇 개면 충분하다고 정했어? 왜 거기야?"</span>
+          <span class="say">"점을 늘리면 공짜야? 화면에서 같이 변하는 숫자가 있는지 봐."</span></td>
+      </tr>
+      <tr>
+        <td class="min">28–40</td><td class="step">기록</td>
+        <td>클래스룸 과제 질문 1~3 작성. 조건은 하나 — "앱에서 직접 본 것을
+          근거로 쓸 것". 다 쓴 학생은 짝과 답을 비교하게 한다.</td>
+      </tr>
+      <tr>
+        <td class="min">40–45</td><td class="step">마무리</td>
+        <td><span class="say">"오늘 발견한 것에 이름은 붙이지 않을게.
+          다음 시간에 여러분 기록을 모아서 정체를 밝혀보자."</span>
+          — 궁금증을 남긴 채 끝내는 것이 의도다.</td>
+      </tr>
+    </table>
+
+    <h3>예상 반응과 대응</h3>
+    <ul>
+      <li>"점이 많을수록 좋은 거 아니에요?" →
+        <span class="say">"그럼 무한히 늘리면 어떻게 될까? 저장할 숫자 개수를 봐."</span></li>
+      <li>"몇 개가 정답이에요?" →
+        <span class="say">"정답이 없어. 네가 정하고 이유를 말하는 게 오늘 과제야."</span></li>
+      <li>일찍 끝낸 학생 → "점 개수를 절반으로 줄여도 티가 안 나는 곡선 구간이
+        있는지" 찾게 한다(잔물결이 적은 구간에서 발견 가능 — 심화 관찰).</li>
+    </ul>
+
+    <div class="dont">
+      <b>이 차시에서 하지 말 것</b>
+      <ul>
+        <li>'디지털', '샘플링', '아날로그' 용어를 교사가 먼저 말하기 —
+          학생이 먼저 말하면 "그 말 기억해두자"라고만 받는다</li>
+        <li>앱 조작 전에 원리 설명하기 — 설명이 먼저 나오면 조작은 확인
+          활동이 되어버린다</li>
+        <li>"충분한 간격"에 정답이 있는 것처럼 반응하기</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ═══════ 2차시 ═══════ -->
+  <div class="lesson">
+    <h2>2차시 — 이름 붙이고 넓히기</h2>
+    <p class="sub">패턴 말하기 → 정리(일반화·용어) → 토론 → 전이 · 준비물:
+      1차시 클래스룸 기록, 확대하면 픽셀이 보이는 사진 1장</p>
+
+    <h3>진행 흐름</h3>
+    <table>
+      <tr><th style="width:52px">분</th><th style="width:92px">단계</th><th>교사가 하는 일</th></tr>
+      <tr>
+        <td class="min">0–10</td><td class="step">패턴 말하기</td>
+        <td>모둠별로 1차시 기록을 비교하고 공통점을 찾게 한다.
+          <span class="say">"모둠의 발견을 '~할수록 ~하다' 꼴의 한 문장으로 만들어봐."</span>
+          모둠 문장을 칠판에 전부 적는다.</td>
+      </tr>
+      <tr>
+        <td class="min">10–22</td><td class="step">일반화 다듬기</td>
+        <td>칠판의 문장들에서 공통 구조를 찾아 학급의 문장으로 다듬는다.
+          핵심 기법: <b>학생이 쓴 단어를 최대한 남기면서</b> 연결하고,
+          빠진 쪽(대개 "저장이 늘어난다" 쪽)만 발문으로 끌어낸다.
+          <span class="say">"좋아지는 얘기는 다 있는데, 대신 치르는 값은 어느 문장에 있지?"</span>
+          완성된 학급 문장은 지우지 말고 남겨둔다.</td>
+      </tr>
+      <tr>
+        <td class="min">22–32</td><td class="step">용어 연결</td>
+        <td>여기부터는 짧은 강의가 허용되는 구간이다. 학급 문장 위에 교과서
+          용어를 이름표처럼 얹는다 — 연속적인 것(<b>아날로그</b>),
+          나누어 저장하는 방식(<b>디지털</b>), 점을 찍어 값을 채집하는 일
+          (<b>샘플링</b>), 저장되는 0과 1의 최소 단위(<b>비트</b>).
+          <span class="say">"어제 여러분이 슬라이더로 한 일이 바로 샘플링이야.
+          발견은 이미 했고, 오늘은 이름만 배운 거야."</span></td>
+      </tr>
+      <tr>
+        <td class="min">32–40</td><td class="step">토론</td>
+        <td><span class="say">"디지털로 바꾸면 항상 조금은 손해라는 걸 발견했지.
+          그런데 세상은 왜 디지털을 택했을까?"</span>
+          복사·전송·보관 쪽 답이 나오면 좋고, 안 나오면
+          "이 곡선을 친구에게 종이로 전달하면?"으로 유도.
+          클래스룸 과제 질문 4를 이 자리에서 안내한다.</td>
+      </tr>
+      <tr>
+        <td class="min">40–45</td><td class="step">전이</td>
+        <td>사진을 크게 확대해 픽셀이 드러나는 모습을 보여준다.
+          <span class="say">"소리는 시간을 점으로 나눴어. 그럼 이 사진은
+          무엇을 나눈 걸까?"</span> — 답은 받지 않고 다음 소단원 예고로 끝낸다.</td>
+      </tr>
+    </table>
+
+    <h3>예상 반응과 대응</h3>
+    <ul>
+      <li>모둠 문장이 사실 나열에 그침("점이 많으면 비슷해진다") →
+        <span class="say">"소리 말고 다른 것에도 통하는 문장으로 넓혀볼까?"</span></li>
+      <li>일반화가 교사 문장처럼 매끈하게 안 나옴 → 그대로 둔다.
+        어색해도 학생들의 문장이 학급의 공식 문장이다. 다듬는 건 다음 단원에서
+        같은 개념을 또 만났을 때 자연스럽게 된다.</li>
+    </ul>
+
+    <div class="dont">
+      <b>이 차시에서 하지 말 것</b>
+      <ul>
+        <li>모둠 문장을 걷은 뒤 교사가 준비한 '정답 일반화'로 교체하기 —
+          병기하고 비교하게 할 것</li>
+        <li>용어 연결을 토론보다 먼저 길게 강의하기 — 용어는 10분이면 충분</li>
+        <li>전이 질문("사진은 무엇을 나눈 걸까?")에 이 시간에 답을 주기 —
+          다음 소단원의 관계 맺기가 이 질문에서 시작된다</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  이 지도안은 이 단원 폴더 <code>lesson.md</code>의 설계를 차시 단위로 풀어쓴
+  것입니다. 설계를 고치면 이 페이지도 함께 고칩니다.
+</footer>
+
+</body>
+</html>
