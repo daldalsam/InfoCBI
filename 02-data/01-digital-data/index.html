@@ -185,12 +185,13 @@
   const toX = t => PAD.left + t * (W - PAD.left - PAD.right);
   const toY = v => PAD.top + (1 - v) / 2 * (H - PAD.top - PAD.bottom);
 
-  // 슬라이더 값 -> 채집점 개수(2 ~ 300).
+  // 슬라이더 값 -> 채집점 개수(2 ~ 1024, 1024 = 2의 10제곱).
   // 그냥 비례하게 하면 재미있는 구간(점 2~30개)이 슬라이더 왼쪽 끝에
-  // 몰린다. 제곱을 써서 그 구간이 슬라이더 절반을 차지하게 했다.
+  // 몰린다. 세제곱을 써서 그 구간이 슬라이더 앞쪽 3분의 1을 차지하게
+  // 했다. 과제 질문에 나오는 "점 3개"는 슬라이더 10 근처에서 나온다.
   function sampleCount() {
     const v = Number(slider.value) / 100;
-    return Math.round(2 + 298 * Math.pow(v, 2.5));
+    return Math.round(2 + 1022 * Math.pow(v, 3));
   }
 
   function draw() {
@@ -242,8 +243,10 @@
     ctx.lineJoin = 'miter';                 // 계단 모서리를 뭉개지 않게
     ctx.stroke();
 
-    // 채집점 — 점이 많아지면 반지름을 줄여야 뭉치지 않는다
-    const r = n > 140 ? 1.7 : n > 60 ? 2.3 : 3.4;
+    // 채집점 — 점이 많아지면 반지름을 줄여야 뭉치지 않는다.
+    // 수백 개를 넘으면 화면 폭보다 촘촘해져 어차피 띠처럼 이어져
+    // 보이는데, 그것 자체가 "원본과 구분 불가" 극단값의 모습이다
+    const r = n > 400 ? 1.3 : n > 140 ? 1.7 : n > 60 ? 2.3 : 3.4;
     ctx.fillStyle = getVar('--dot');
     for (const p of pts) {
       ctx.beginPath();
