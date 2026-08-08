@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>지도안 — 디지털 형태의 데이터 (2차시)</title>
+<title>Ⅱ-1-01 디지털 형태의 데이터 — 교사용</title>
 <style>
   :root {
     --bg: #f7f9fc;
@@ -19,7 +19,9 @@
     --say-bg: #f0fdf4;
     --say-ink: #166534;
   }
+
   * { box-sizing: border-box; }
+
   body {
     margin: 0;
     padding: 0 0 60px;
@@ -29,6 +31,16 @@
                  "Malgun Gothic", "맑은 고딕", sans-serif;
     line-height: 1.65;
   }
+
+  a { color: var(--accent); }
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ── 머리띠 ── */
   .topbar { background: var(--ink); color: #fff; padding: 14px 20px; }
   .topbar .in {
     max-width: 860px; margin: 0 auto;
@@ -38,34 +50,123 @@
   .topbar b { font-size: 17px; letter-spacing: -0.01em; }
   .topbar a { color: #93c5fd; text-decoration: none; font-size: 14px; }
   .topbar a:hover { text-decoration: underline; }
+  .topbar .nav { display: flex; gap: 18px; flex-wrap: wrap; }
 
-  .wrap { max-width: 860px; margin: 0 auto; padding: 26px 20px 0; }
+  /* ── 문서 내 이동 ── */
+  .jump {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(247, 249, 252, .94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .jump .in {
+    max-width: 860px; margin: 0 auto; padding: 9px 20px;
+    display: flex; gap: 6px 18px; flex-wrap: wrap;
+    font-size: 13.5px;
+  }
+  .jump a { color: var(--dim); text-decoration: none; }
+  .jump a:hover { color: var(--accent); }
 
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 0; }
+
+  /* ── 단원 머리 ── */
+  .unithead { margin: 0 0 16px; }
+  .unithead h1 {
+    margin: 0 0 6px;
+    font-size: 24px; letter-spacing: -0.02em; line-height: 1.3;
+  }
+  .meta {
+    display: flex; gap: 8px 12px; flex-wrap: wrap; align-items: center;
+    font-size: 14px; color: var(--dim);
+    margin-bottom: 12px;
+  }
+  .chip {
+    font-size: 12.5px; font-weight: 700;
+    padding: 3px 10px; border-radius: 999px;
+    background: #dcfce7; color: #166534;
+  }
+  .std {
+    font-size: 14.5px; color: var(--dim);
+    border-left: 3px solid var(--line);
+    padding: 2px 0 2px 12px;
+    margin: 0 0 16px;
+  }
+  .std b { color: var(--ink); font-weight: 600; }
+
+  /* ── 나침반(일반화) ── */
   .goalbox {
     background: var(--soft);
     border-left: 4px solid var(--accent);
     border-radius: 0 10px 10px 0;
-    padding: 12px 16px;
+    padding: 14px 16px;
     font-size: 15px;
-    margin: 0 0 8px;
+    margin: 0 0 10px;
   }
-  .note { font-size: 14px; color: var(--dim); margin: 10px 0 24px; }
+  .goalbox .lens {
+    font-size: 13px; color: var(--dim);
+    text-transform: none; letter-spacing: .02em;
+    margin: 0 0 6px;
+  }
+  .goalbox .gen { margin: 0 0 8px; font-size: 15.5px; }
+  .goalbox .warn { margin: 0; font-size: 14px; color: var(--dim); }
 
+  .applink {
+    display: inline-block;
+    margin: 4px 0 2px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .applink:active { transform: scale(.98); }
+  @media (prefers-reduced-motion: reduce) {
+    .applink:active { transform: none; }
+    details[open] summary .arrow { transition: none; }
+  }
+
+  /* ── 접히는 설계 개요 ── */
+  details.fold {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+    margin: 22px 0;
+    overflow: hidden;
+  }
+  details.fold > summary {
+    list-style: none; cursor: pointer;
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary .arrow {
+    color: var(--dim); font-size: 12px; transition: transform .15s;
+  }
+  details.fold[open] > summary .arrow { transform: rotate(90deg); }
+  details.fold > summary strong { font-size: 17px; letter-spacing: -0.01em; }
+  details.fold > summary .hint { color: var(--dim); font-size: 13.5px; }
+  .foldbody { padding: 2px 20px 20px; border-top: 1px solid var(--line); }
+
+  /* ── 차시 카드 ── */
   .lesson {
     background: var(--card);
     border-radius: 14px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
     margin-bottom: 22px;
     padding: 22px 22px 18px;
+    scroll-margin-top: 56px;
   }
-  .lesson h2 {
-    margin: 0 0 2px;
-    font-size: 19px;
-    letter-spacing: -0.01em;
-  }
+  .lesson h2 { margin: 0 0 2px; font-size: 19px; letter-spacing: -0.01em; }
   .lesson .sub { color: var(--dim); font-size: 14px; margin: 0 0 14px; }
 
   h3 { margin: 20px 0 8px; font-size: 15px; color: var(--accent); }
+  .foldbody > h3:first-child { margin-top: 16px; }
+
+  p { margin: 6px 0; font-size: 15px; }
+  ul, ol { margin: 6px 0; padding-left: 22px; font-size: 15px; }
+  li { margin: 4px 0; }
 
   table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 8px 0; }
   th, td {
@@ -76,6 +177,7 @@
   th { color: var(--dim); font-weight: 600; white-space: nowrap; }
   td.min { white-space: nowrap; color: var(--dim); font-variant-numeric: tabular-nums; }
   td.step { white-space: nowrap; font-weight: 600; }
+  td.where { white-space: nowrap; color: var(--dim); }
 
   .say {
     display: block;
@@ -98,16 +200,24 @@
     margin: 14px 0 4px;
   }
   .dont b { display: block; margin-bottom: 4px; }
-  .dont ul { margin: 0; padding-left: 20px; }
+  .dont ul { margin: 0; padding-left: 20px; font-size: 14.5px; }
   .dont li { margin: 3px 0; }
-
-  ul, ol { margin: 6px 0; padding-left: 22px; font-size: 15px; }
-  li { margin: 4px 0; }
-  p { margin: 6px 0; font-size: 15px; }
 
   footer {
     max-width: 860px; margin: 30px auto 0; padding: 0 20px;
     font-size: 13px; color: var(--dim);
+  }
+
+  /* ── 인쇄 ── */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .topbar, .jump, .applink { display: none; }
+    .lesson, details.fold {
+      box-shadow: none; border: 1px solid #ccc;
+      break-inside: avoid; page-break-inside: avoid;
+    }
+    details.fold > summary .hint { display: none; }
+    .say { border: 1px solid #ccc; }
   }
 </style>
 </head>
@@ -115,25 +225,117 @@
 
 <div class="topbar">
   <div class="in">
-    <b>차시별 지도안 — 디지털 형태의 데이터</b>
-    <a href="index.html">← 교사용 첫 페이지</a>
+    <b>정보 수업 — 교사용</b>
+    <span class="nav">
+      <a href="../index.html">← 교사용 첫 페이지</a>
+      <a href="../../index.html">학생용 첫 페이지 열기 →</a>
+    </span>
   </div>
 </div>
 
+<nav class="jump">
+  <div class="in">
+    <a href="#design">설계 개요</a>
+    <a href="#l1">1차시 — 만져보고 기록하기</a>
+    <a href="#l2">2차시 — 이름 붙이고 넓히기</a>
+  </div>
+</nav>
+
 <div class="wrap">
 
-  <div class="goalbox">
-    학생이 도달할 일반화: <b>디지털 표현은 연속적인 대상을 이산적인 단위로
-    나누어 나타내며, 단위를 잘게 나눌수록 원본에 가까워지지만 저장 공간이
-    늘어난다.</b><br>
-    이 문장은 교사의 나침반입니다. 수업에서 <b>먼저 말하지 않습니다</b> —
-    학생이 자기 말로 도달한 뒤 2차시 정리에서 함께 다듬습니다.
+  <div class="unithead">
+    <h1>Ⅱ-1-01 디지털 형태의 데이터</h1>
+    <div class="meta">
+      <span>2차시 · 45분 기준</span>
+      <span class="chip">앱 사용</span>
+    </div>
+    <p class="std">
+      <b>[9정02-01]</b> 실생활의 데이터가 디지털 형태로 변환되어 활용되는 긍정적
+      가치를 탐색하고, 다양한 데이터를 디지털 형태로 표현한다.
+      <br>01·02 두 소단원이 나눠 맡습니다. 01은 “긍정적 가치 탐색” 쪽.
+    </p>
   </div>
-  <p class="note">45분 기준. 시간은 학급 상황에 맞게 조절하세요.
-    앱: <a href="../02-data/01-digital-data/index.html">점 몇 개면 될까?</a></p>
 
-  <!-- ═══════ 1차시 ═══════ -->
-  <div class="lesson">
+  <div class="goalbox">
+    <p class="lens">개념적 렌즈 — 표현</p>
+    <p class="gen">학생이 도달할 일반화: <b>디지털 표현은 연속적인 대상을
+      이산적인 단위로 나누어 나타내며, 단위를 잘게 나눌수록 원본에 가까워지지만
+      저장 공간이 늘어난다.</b></p>
+    <p class="warn">이 문장은 교사의 나침반입니다. 수업에서 <b>먼저 말하지
+      않습니다</b> — 학생이 자기 말로 도달한 뒤 2차시 정리에서 함께 다듬습니다.</p>
+  </div>
+
+  <a class="applink" href="../../02-data/01-digital-data/index.html">앱 열기 — 점 몇 개면 될까?</a>
+
+
+  <!-- ═══════════ 설계 개요 ═══════════ -->
+  <details class="fold" id="design" open>
+    <summary>
+      <span class="arrow">▶</span>
+      <strong>설계 개요</strong>
+      <span class="hint">한 번 읽었으면 접어두고 지도안만 보셔도 됩니다</span>
+    </summary>
+    <div class="foldbody">
+
+      <h3>렌즈를 표현으로 잡은 이유</h3>
+      <p>아날로그·디지털·비트를 각각 배우면 조각 지식으로 끝납니다.
+        ‘표현’으로 묶으면 셋 모두 “연속적인 실제를 컴퓨터가 다룰 수 있는 단위로
+        바꿔 나타낸 것”이라는 한 원리로 보입니다. 이 렌즈는 02 소단원과
+        알고리즘·인공지능 영역에서 다시 등장하며 깊어집니다.</p>
+
+      <h3>탐구 질문</h3>
+      <table>
+        <tr><th>사실적</th><td>1비트로는 몇 가지를 구분할 수 있는가?
+          아날로그 데이터와 디지털 데이터는 무엇이 다른가?</td></tr>
+        <tr><th>개념적</th><td>연속적인 것을 컴퓨터에 저장하려면 왜 나누어야
+          하는가? 더 잘게 나누면 무엇이 좋아지고 무엇을 잃는가?</td></tr>
+        <tr><th>논쟁적</th><td>디지털로 바꾸면 항상 조금은 손해인데, 그래도
+          세상은 왜 디지털을 택했을까?</td></tr>
+      </table>
+
+      <h3>앱 — 샘플링 조작기</h3>
+      <p>정밀도 슬라이더 하나로 채집점 개수·복원 곡선·저장할 숫자 개수가 즉시
+        변합니다. 학생이 하는 판단은 <b>“원본이라고 인정할 만한” 최소 간격을
+        스스로 정하고 근거를 말하는 것</b>입니다. 정답은 없습니다.</p>
+      <p>오차 수치는 일부러 넣지 않았습니다 — 수치를 주면 그 수치를 맞추는
+        게임이 됩니다. 슬라이더 오른쪽 끝은 1024개(2<sup>10</sup>)로,
+        02 소단원의 비트와 연결되는 값입니다.</p>
+
+      <h3>앱이 담당하는 곳은 조사하기 한 단계입니다</h3>
+      <table>
+        <tr><th>관계 맺기</th><td class="where">수업</td>
+          <td>“전화 목소리는 왜 실제와 다르게 들릴까?” /
+            옛날 게임 음악과 요즘 음원 비교 재생</td></tr>
+        <tr><th>조사하기</th><td class="where">앱</td>
+          <td>정밀도 슬라이더 실험, 극단값 확인, “충분한 간격” 정하기</td></tr>
+        <tr><th>패턴 말하기</th><td class="where">클래스룸</td>
+          <td>“간격을 좁힐수록/넓힐수록 무엇이 어떻게 변했나” 기록, 모둠 공유</td></tr>
+        <tr><th>정리</th><td class="where">수업</td>
+          <td>학생 표현을 모아 일반화로 다듬기 +
+            교과서 용어(아날로그·디지털·비트) 연결</td></tr>
+        <tr><th>전이</th><td class="where">수업</td>
+          <td>“이미지도 같은 방식일까?” — 사진을 확대해 픽셀을 보여주며 02 예고</td></tr>
+      </table>
+
+      <h3>클래스룸 과제 질문 (복사해서 쓰기)</h3>
+      <ol>
+        <li>채집점이 3개일 때와 가장 촘촘할 때, 복원된 곡선은 각각 원본과
+          얼마나 닮았고 저장 숫자는 몇 개였나요?</li>
+        <li>간격을 좁히면 무엇이 좋아지고 무엇을 잃었나요?</li>
+        <li>여러분이 “이 정도면 원본으로 인정”이라고 정한 간격은 어디였나요?
+          그렇게 정한 이유를 쓰세요.</li>
+        <li>손해를 감수하면서도 세상이 데이터를 디지털로 바꾸는 이유는
+          무엇일까요? 지난 시간 앱 조작에서 근거를 하나 찾아 쓰세요.</li>
+      </ol>
+      <p style="color:var(--dim);font-size:14px">1~3은 1차시 끝에, 4는 2차시
+        토론 자리에서 안내합니다.</p>
+
+    </div>
+  </details>
+
+
+  <!-- ═══════════ 1차시 ═══════════ -->
+  <div class="lesson" id="l1">
     <h2>1차시 — 만져보고 기록하기</h2>
     <p class="sub">관계 맺기 → 조사하기(앱) → 발견 기록 · 준비물: 학생 기기,
       앱 주소, 클래스룸 과제(질문 1~3) 미리 게시, 음질 비교용 음원 2개</p>
@@ -144,15 +346,15 @@
       <tr>
         <td class="min">0–8</td><td class="step">관계 맺기</td>
         <td>옛날 게임 음악(또는 저음질 음원)과 요즘 음원을 이어서 들려준다.
-          <span class="say">"두 소리는 뭐가 다를까? 왜 다르게 들릴까?"</span>
-          <span class="say">"전화 속 목소리는 왜 실제 목소리와 다르게 들릴까?"</span>
+          <span class="say">“두 소리는 뭐가 다를까? 왜 다르게 들릴까?”</span>
+          <span class="say">“전화 속 목소리는 왜 실제 목소리와 다르게 들릴까?”</span>
           나온 답을 판단하지 말고 칠판에 그대로 모은다. 이 답들은 2차시
           정리에서 다시 꺼내 쓸 재료다.</td>
       </tr>
       <tr>
         <td class="min">8–13</td><td class="step">앱 열기</td>
         <td>주소 안내. 3분간 자유롭게 만지게 둔다(설명하지 않는다).
-          화면 구성을 묻는 학생에게는 "만져보면 알게 된다"고만.</td>
+          화면 구성을 묻는 학생에게는 “만져보면 알게 된다”고만.</td>
       </tr>
       <tr>
         <td class="min">13–28</td><td class="step">조사하기</td>
@@ -160,53 +362,54 @@
           <ol>
             <li>슬라이더를 <b>양 끝</b>으로 밀어보기 — 각각 무슨 일이 생기는가
               (교사 참고: 오른쪽 끝은 1024개 = 2<sup>10</sup>.
-              "왜 하필 1024일까?"라는 질문이 나오면 답하지 말고
-              다음 단원 예고로 아껴둔다)</li>
+              “왜 하필 1024일까?”라는 질문이 나오면 답하지 말고
+              다음 소단원 예고로 아껴둔다)</li>
             <li>점이 2~3개일 때 파란 선은 회색 선을 얼마나 따라가는가</li>
-            <li>"이 정도면 원본으로 인정"이라고 할 최소 간격을 <b>스스로</b> 정하기</li>
+            <li>“이 정도면 원본으로 인정”이라고 할 최소 간격을 <b>스스로</b> 정하기</li>
           </ol>
           순회하며 개별 발문:
-          <span class="say">"방금 슬라이더를 왼쪽으로 밀었을 때 뭘 잃었어?"</span>
-          <span class="say">"점 몇 개면 충분하다고 정했어? 왜 거기야?"</span>
-          <span class="say">"점을 늘리면 공짜야? 화면에서 같이 변하는 숫자가 있는지 봐."</span></td>
+          <span class="say">“방금 슬라이더를 왼쪽으로 밀었을 때 뭘 잃었어?”</span>
+          <span class="say">“점 몇 개면 충분하다고 정했어? 왜 거기야?”</span>
+          <span class="say">“점을 늘리면 공짜야? 화면에서 같이 변하는 숫자가 있는지 봐.”</span></td>
       </tr>
       <tr>
         <td class="min">28–40</td><td class="step">기록</td>
-        <td>클래스룸 과제 질문 1~3 작성. 조건은 하나 — "앱에서 직접 본 것을
-          근거로 쓸 것". 다 쓴 학생은 짝과 답을 비교하게 한다.</td>
+        <td>클래스룸 과제 질문 1~3 작성. 조건은 하나 — “앱에서 직접 본 것을
+          근거로 쓸 것”. 다 쓴 학생은 짝과 답을 비교하게 한다.</td>
       </tr>
       <tr>
         <td class="min">40–45</td><td class="step">마무리</td>
-        <td><span class="say">"오늘 발견한 것에 이름은 붙이지 않을게.
-          다음 시간에 여러분 기록을 모아서 정체를 밝혀보자."</span>
+        <td><span class="say">“오늘 발견한 것에 이름은 붙이지 않을게.
+          다음 시간에 여러분 기록을 모아서 정체를 밝혀보자.”</span>
           — 궁금증을 남긴 채 끝내는 것이 의도다.</td>
       </tr>
     </table>
 
     <h3>예상 반응과 대응</h3>
     <ul>
-      <li>"점이 많을수록 좋은 거 아니에요?" →
-        <span class="say">"그럼 무한히 늘리면 어떻게 될까? 저장할 숫자 개수를 봐."</span></li>
-      <li>"몇 개가 정답이에요?" →
-        <span class="say">"정답이 없어. 네가 정하고 이유를 말하는 게 오늘 과제야."</span></li>
-      <li>일찍 끝낸 학생 → "점 개수를 절반으로 줄여도 티가 안 나는 곡선 구간이
-        있는지" 찾게 한다(잔물결이 적은 구간에서 발견 가능 — 심화 관찰).</li>
+      <li>“점이 많을수록 좋은 거 아니에요?” →
+        <span class="say">“그럼 무한히 늘리면 어떻게 될까? 저장할 숫자 개수를 봐.”</span></li>
+      <li>“몇 개가 정답이에요?” →
+        <span class="say">“정답이 없어. 네가 정하고 이유를 말하는 게 오늘 과제야.”</span></li>
+      <li>일찍 끝낸 학생 → “점 개수를 절반으로 줄여도 티가 안 나는 곡선 구간이
+        있는지” 찾게 한다(잔물결이 적은 구간에서 발견 가능 — 심화 관찰).</li>
     </ul>
 
     <div class="dont">
       <b>이 차시에서 하지 말 것</b>
       <ul>
-        <li>'디지털', '샘플링', '아날로그' 용어를 교사가 먼저 말하기 —
-          학생이 먼저 말하면 "그 말 기억해두자"라고만 받는다</li>
+        <li>‘디지털’, ‘샘플링’, ‘아날로그’ 용어를 교사가 먼저 말하기 —
+          학생이 먼저 말하면 “그 말 기억해두자”라고만 받는다</li>
         <li>앱 조작 전에 원리 설명하기 — 설명이 먼저 나오면 조작은 확인
           활동이 되어버린다</li>
-        <li>"충분한 간격"에 정답이 있는 것처럼 반응하기</li>
+        <li>“충분한 간격”에 정답이 있는 것처럼 반응하기</li>
       </ul>
     </div>
   </div>
 
-  <!-- ═══════ 2차시 ═══════ -->
-  <div class="lesson">
+
+  <!-- ═══════════ 2차시 ═══════════ -->
+  <div class="lesson" id="l2">
     <h2>2차시 — 이름 붙이고 넓히기</h2>
     <p class="sub">패턴 말하기 → 정리(일반화·용어) → 토론 → 전이 · 준비물:
       1차시 클래스룸 기록, 확대하면 픽셀이 보이는 사진 1장</p>
@@ -217,15 +420,15 @@
       <tr>
         <td class="min">0–10</td><td class="step">패턴 말하기</td>
         <td>모둠별로 1차시 기록을 비교하고 공통점을 찾게 한다.
-          <span class="say">"모둠의 발견을 '~할수록 ~하다' 꼴의 한 문장으로 만들어봐."</span>
+          <span class="say">“모둠의 발견을 ‘~할수록 ~하다’ 꼴의 한 문장으로 만들어봐.”</span>
           모둠 문장을 칠판에 전부 적는다.</td>
       </tr>
       <tr>
         <td class="min">10–22</td><td class="step">일반화 다듬기</td>
         <td>칠판의 문장들에서 공통 구조를 찾아 학급의 문장으로 다듬는다.
           핵심 기법: <b>학생이 쓴 단어를 최대한 남기면서</b> 연결하고,
-          빠진 쪽(대개 "저장이 늘어난다" 쪽)만 발문으로 끌어낸다.
-          <span class="say">"좋아지는 얘기는 다 있는데, 대신 치르는 값은 어느 문장에 있지?"</span>
+          빠진 쪽(대개 “저장이 늘어난다” 쪽)만 발문으로 끌어낸다.
+          <span class="say">“좋아지는 얘기는 다 있는데, 대신 치르는 값은 어느 문장에 있지?”</span>
           완성된 학급 문장은 지우지 말고 남겨둔다.</td>
       </tr>
       <tr>
@@ -234,29 +437,29 @@
           용어를 이름표처럼 얹는다 — 연속적인 것(<b>아날로그</b>),
           나누어 저장하는 방식(<b>디지털</b>), 점을 찍어 값을 채집하는 일
           (<b>샘플링</b>), 저장되는 0과 1의 최소 단위(<b>비트</b>).
-          <span class="say">"어제 여러분이 슬라이더로 한 일이 바로 샘플링이야.
-          발견은 이미 했고, 오늘은 이름만 배운 거야."</span></td>
+          <span class="say">“어제 여러분이 슬라이더로 한 일이 바로 샘플링이야.
+          발견은 이미 했고, 오늘은 이름만 배운 거야.”</span></td>
       </tr>
       <tr>
         <td class="min">32–40</td><td class="step">토론</td>
-        <td><span class="say">"디지털로 바꾸면 항상 조금은 손해라는 걸 발견했지.
-          그런데 세상은 왜 디지털을 택했을까?"</span>
+        <td><span class="say">“디지털로 바꾸면 항상 조금은 손해라는 걸 발견했지.
+          그런데 세상은 왜 디지털을 택했을까?”</span>
           복사·전송·보관 쪽 답이 나오면 좋고, 안 나오면
-          "이 곡선을 친구에게 종이로 전달하면?"으로 유도.
+          “이 곡선을 친구에게 종이로 전달하면?”으로 유도.
           클래스룸 과제 질문 4를 이 자리에서 안내한다.</td>
       </tr>
       <tr>
         <td class="min">40–45</td><td class="step">전이</td>
         <td>사진을 크게 확대해 픽셀이 드러나는 모습을 보여준다.
-          <span class="say">"소리는 시간을 점으로 나눴어. 그럼 이 사진은
-          무엇을 나눈 걸까?"</span> — 답은 받지 않고 다음 소단원 예고로 끝낸다.</td>
+          <span class="say">“소리는 시간을 점으로 나눴어. 그럼 이 사진은
+          무엇을 나눈 걸까?”</span> — 답은 받지 않고 다음 소단원 예고로 끝낸다.</td>
       </tr>
     </table>
 
     <h3>예상 반응과 대응</h3>
     <ul>
-      <li>모둠 문장이 사실 나열에 그침("점이 많으면 비슷해진다") →
-        <span class="say">"소리 말고 다른 것에도 통하는 문장으로 넓혀볼까?"</span></li>
+      <li>모둠 문장이 사실 나열에 그침(“점이 많으면 비슷해진다”) →
+        <span class="say">“소리 말고 다른 것에도 통하는 문장으로 넓혀볼까?”</span></li>
       <li>일반화가 교사 문장처럼 매끈하게 안 나옴 → 그대로 둔다.
         어색해도 학생들의 문장이 학급의 공식 문장이다. 다듬는 건 다음 단원에서
         같은 개념을 또 만났을 때 자연스럽게 된다.</li>
@@ -265,10 +468,10 @@
     <div class="dont">
       <b>이 차시에서 하지 말 것</b>
       <ul>
-        <li>모둠 문장을 걷은 뒤 교사가 준비한 '정답 일반화'로 교체하기 —
+        <li>모둠 문장을 걷은 뒤 교사가 준비한 ‘정답 일반화’로 교체하기 —
           병기하고 비교하게 할 것</li>
         <li>용어 연결을 토론보다 먼저 길게 강의하기 — 용어는 10분이면 충분</li>
-        <li>전이 질문("사진은 무엇을 나눈 걸까?")에 이 시간에 답을 주기 —
+        <li>전이 질문(“사진은 무엇을 나눈 걸까?”)에 이 시간에 답을 주기 —
           다음 소단원의 관계 맺기가 이 질문에서 시작된다</li>
       </ul>
     </div>
@@ -277,8 +480,9 @@
 </div>
 
 <footer>
-  이 지도안은 이 단원 폴더 <code>lesson.md</code>의 설계를 차시 단위로 풀어쓴
-  것입니다. 설계를 고치면 이 페이지도 함께 고칩니다.
+  이 페이지는 비밀번호가 없어 주소를 아는 사람은 누구나 볼 수 있습니다.
+  원본은 <code>02-data/01-digital-data/lesson.md</code>이며 이 페이지는 사본입니다 —
+  설계를 고칠 때는 둘을 함께 고칩니다.
 </footer>
 
 </body>

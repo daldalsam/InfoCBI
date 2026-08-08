@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>지도안 — 다양한 데이터의 디지털 표현 (3차시)</title>
+<title>Ⅱ-1-02 다양한 데이터의 디지털 표현 — 교사용</title>
 <style>
   :root {
     --bg: #f7f9fc;
@@ -19,7 +19,9 @@
     --say-bg: #f0fdf4;
     --say-ink: #166534;
   }
+
   * { box-sizing: border-box; }
+
   body {
     margin: 0;
     padding: 0 0 60px;
@@ -29,6 +31,15 @@
                  "Malgun Gothic", "맑은 고딕", sans-serif;
     line-height: 1.65;
   }
+
+  a { color: var(--accent); }
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   .topbar { background: var(--ink); color: #fff; padding: 14px 20px; }
   .topbar .in {
     max-width: 860px; margin: 0 auto;
@@ -38,18 +49,97 @@
   .topbar b { font-size: 17px; letter-spacing: -0.01em; }
   .topbar a { color: #93c5fd; text-decoration: none; font-size: 14px; }
   .topbar a:hover { text-decoration: underline; }
+  .topbar .nav { display: flex; gap: 18px; flex-wrap: wrap; }
 
-  .wrap { max-width: 860px; margin: 0 auto; padding: 26px 20px 0; }
+  .jump {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(247, 249, 252, .94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .jump .in {
+    max-width: 860px; margin: 0 auto; padding: 9px 20px;
+    display: flex; gap: 6px 18px; flex-wrap: wrap;
+    font-size: 13.5px;
+  }
+  .jump a { color: var(--dim); text-decoration: none; }
+  .jump a:hover { color: var(--accent); }
+
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 0; }
+
+  .unithead { margin: 0 0 16px; }
+  .unithead h1 {
+    margin: 0 0 6px;
+    font-size: 24px; letter-spacing: -0.02em; line-height: 1.3;
+  }
+  .meta {
+    display: flex; gap: 8px 12px; flex-wrap: wrap; align-items: center;
+    font-size: 14px; color: var(--dim);
+    margin-bottom: 12px;
+  }
+  .chip {
+    font-size: 12.5px; font-weight: 700;
+    padding: 3px 10px; border-radius: 999px;
+    background: #dcfce7; color: #166534;
+  }
+  .std {
+    font-size: 14.5px; color: var(--dim);
+    border-left: 3px solid var(--line);
+    padding: 2px 0 2px 12px;
+    margin: 0 0 16px;
+  }
+  .std b { color: var(--ink); font-weight: 600; }
 
   .goalbox {
     background: var(--soft);
     border-left: 4px solid var(--accent);
     border-radius: 0 10px 10px 0;
-    padding: 12px 16px;
+    padding: 14px 16px;
     font-size: 15px;
-    margin: 0 0 8px;
+    margin: 0 0 10px;
   }
-  .note { font-size: 14px; color: var(--dim); margin: 10px 0 24px; }
+  .goalbox .lens { font-size: 13px; color: var(--dim); margin: 0 0 6px; }
+  .goalbox .gen { margin: 0 0 8px; font-size: 15.5px; }
+  .goalbox .gen.second { color: #334155; font-size: 14.5px; }
+  .goalbox .warn { margin: 8px 0 0; font-size: 14px; color: var(--dim); }
+
+  .applink {
+    display: inline-block;
+    margin: 4px 0 2px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .applink:active { transform: scale(.98); }
+  @media (prefers-reduced-motion: reduce) {
+    .applink:active { transform: none; }
+    details[open] summary .arrow { transition: none; }
+  }
+
+  details.fold {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+    margin: 22px 0;
+    overflow: hidden;
+  }
+  details.fold > summary {
+    list-style: none; cursor: pointer;
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary .arrow {
+    color: var(--dim); font-size: 12px; transition: transform .15s;
+  }
+  details.fold[open] > summary .arrow { transform: rotate(90deg); }
+  details.fold > summary strong { font-size: 17px; letter-spacing: -0.01em; }
+  details.fold > summary .hint { color: var(--dim); font-size: 13.5px; }
+  .foldbody { padding: 2px 20px 20px; border-top: 1px solid var(--line); }
 
   .lesson {
     background: var(--card);
@@ -57,11 +147,17 @@
     box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
     margin-bottom: 22px;
     padding: 22px 22px 18px;
+    scroll-margin-top: 56px;
   }
   .lesson h2 { margin: 0 0 2px; font-size: 19px; letter-spacing: -0.01em; }
   .lesson .sub { color: var(--dim); font-size: 14px; margin: 0 0 14px; }
 
   h3 { margin: 20px 0 8px; font-size: 15px; color: var(--accent); }
+  .foldbody > h3:first-child { margin-top: 16px; }
+
+  p { margin: 6px 0; font-size: 15px; }
+  ul, ol { margin: 6px 0; padding-left: 22px; font-size: 15px; }
+  li { margin: 4px 0; }
 
   table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 8px 0; }
   th, td {
@@ -72,6 +168,7 @@
   th { color: var(--dim); font-weight: 600; white-space: nowrap; }
   td.min { white-space: nowrap; color: var(--dim); font-variant-numeric: tabular-nums; }
   td.step { white-space: nowrap; font-weight: 600; }
+  td.where { white-space: nowrap; color: var(--dim); }
 
   .say {
     display: block;
@@ -94,16 +191,23 @@
     margin: 14px 0 4px;
   }
   .dont b { display: block; margin-bottom: 4px; }
-  .dont ul { margin: 0; padding-left: 20px; }
+  .dont ul { margin: 0; padding-left: 20px; font-size: 14.5px; }
   .dont li { margin: 3px 0; }
-
-  ul, ol { margin: 6px 0; padding-left: 22px; font-size: 15px; }
-  li { margin: 4px 0; }
-  p { margin: 6px 0; font-size: 15px; }
 
   footer {
     max-width: 860px; margin: 30px auto 0; padding: 0 20px;
     font-size: 13px; color: var(--dim);
+  }
+
+  @media print {
+    body { background: #fff; padding: 0; }
+    .topbar, .jump, .applink { display: none; }
+    .lesson, details.fold {
+      box-shadow: none; border: 1px solid #ccc;
+      break-inside: avoid; page-break-inside: avoid;
+    }
+    details.fold > summary .hint { display: none; }
+    .say { border: 1px solid #ccc; }
   }
 </style>
 </head>
@@ -111,238 +215,371 @@
 
 <div class="topbar">
   <div class="in">
-    <b>차시별 지도안 — 다양한 데이터의 디지털 표현</b>
-    <a href="index.html">← 교사용 첫 페이지</a>
+    <b>정보 수업 — 교사용</b>
+    <span class="nav">
+      <a href="../index.html">← 교사용 첫 페이지</a>
+      <a href="../../index.html">학생용 첫 페이지 열기 →</a>
+    </span>
   </div>
 </div>
 
+<nav class="jump">
+  <div class="in">
+    <a href="#design">설계 개요</a>
+    <a href="#l1">1차시 — 같은 격자, 다른 해석</a>
+    <a href="#l2">2차시 — 약속에 이름 붙이기</a>
+    <a href="#l3">3차시 — 직접 표현해보기</a>
+  </div>
+</nav>
+
 <div class="wrap">
 
-  <div class="goalbox">
-    학생이 도달할 일반화:
-    <b>① 서로 다른 종류의 데이터도 같은 비트로 표현할 수 있는 것은 대상과
-    비트 사이에 약속(규칙)을 정해 두었기 때문이며, 같은 비트라도 약속이
-    다르면 다른 의미가 된다.</b><br>
-    ② (앞 단원에서 이어받아 확인) 표현의 정밀도를 높이면 원본에 가까워지지만
-    저장 공간이 늘어난다.<br>
-    '약속'이라는 단어는 앱 화면에도 일부러 없습니다. <b>학생 입에서 먼저
-    나오게 하는 것</b>이 이 단원의 승부처입니다.
+  <div class="unithead">
+    <h1>Ⅱ-1-02 다양한 데이터의 디지털 표현</h1>
+    <div class="meta">
+      <span>3차시 · 45분 기준</span>
+      <span class="chip">앱 사용</span>
+    </div>
+    <p class="std">
+      <b>[9정02-01]</b> 실생활의 데이터가 디지털 형태로 변환되어 활용되는 긍정적
+      가치를 탐색하고, 다양한 데이터를 디지털 형태로 표현한다.
+      <br>01·02 두 소단원이 나눠 맡습니다. 02는 “다양한 데이터를 디지털 형태로
+      표현한다” 쪽.
+    </p>
   </div>
-  <p class="note">45분 기준.
-    앱: <a href="../02-data/02-representation/index.html">그림일까, 글자일까, 수일까?</a></p>
 
-  <!-- ═══════ 1차시 ═══════ -->
-  <div class="lesson">
-    <h2>1차시 — 같은 비트, 세 가지 얼굴</h2>
+  <div class="goalbox">
+    <p class="lens">개념적 렌즈 — 표현 (01에서 세운 렌즈가 두 번째로 등장하며 깊어집니다)</p>
+    <p class="gen">① 학생이 도달할 일반화: <b>서로 다른 종류의 데이터도 같은
+      비트로 표현할 수 있는 것은 대상과 비트 사이에 약속(규칙)을 정해 두었기
+      때문이며, 같은 비트라도 약속이 다르면 다른 의미가 된다.</b></p>
+    <p class="gen second">② 01에서 이어받아 확인하는 것: 표현의 정밀도를 높이면
+      원본에 가까워지지만 저장 공간이 늘어난다 — 문자·이미지·소리 어디서나
+      성립한다.</p>
+    <p class="warn">두 문장 모두 <b>먼저 말하지 않습니다.</b> ①은 2차시 정리에서
+      학생 표현을 모아 다듬고, ②는 3차시 과제에서 학생이 스스로 확인합니다.
+      특히 <b>‘약속’이라는 단어를 교사가 먼저 쓰지 않습니다</b> — 앱 화면에도
+      일부러 넣지 않았습니다.</p>
+  </div>
+
+  <a class="applink" href="../../02-data/02-representation/index.html">앱 열기 — 그림일까, 글자일까, 수일까?</a>
+
+
+  <!-- ═══════════ 설계 개요 ═══════════ -->
+  <details class="fold" id="design" open>
+    <summary>
+      <span class="arrow">▶</span>
+      <strong>설계 개요</strong>
+      <span class="hint">한 번 읽었으면 접어두고 지도안만 보셔도 됩니다</span>
+    </summary>
+    <div class="foldbody">
+
+      <h3>같은 렌즈를 다시 쓰는 이유</h3>
+      <p>01이 “연속을 이산으로 바꾼다”는 표현의 원리를 곡선 하나로 보았다면,
+        이 단원은 문자·이미지·소리라는 <b>서로 다른 매체에 그 원리가 어떻게
+        적용되는지</b>, 그리고 그 적용을 가능하게 하는 것(약속)이 무엇인지를
+        봅니다. 같은 렌즈가 두 번째 등장하며 깊어지는 나선형 구조입니다.</p>
+
+      <h3>탐구 질문</h3>
+      <table>
+        <tr><th>사실적</th><td>문자 ‘A’의 코드값은 무엇인가?
+          8×8 픽셀 격자 하나를 저장하려면 몇 비트가 필요한가?</td></tr>
+        <tr><th>개념적</th><td>같은 0과 1의 나열이 어떻게 어떤 때는 글자가 되고
+          어떤 때는 그림이 되는가? 약속이 서로 다르면 무슨 일이 벌어지는가?</td></tr>
+        <tr><th>논쟁적</th><td>세상 모든 글자와 기호를 하나의 약속에 담아야 할까,
+          나라마다·용도마다 다른 약속을 써도 될까?</td></tr>
+      </table>
+
+      <h3>앱 — 비트 해석 전환기</h3>
+      <p>8×8 격자(64비트)를 켜고 끄면 같은 비트가 세 가지 약속으로 읽힌 결과가
+        나란히 즉시 갱신됩니다 — <b>그림</b>(1비트 흑백 이미지),
+        <b>글자</b>(한 행 8비트씩 문자 코드로 읽은 8글자),
+        <b>수</b>(각 행을 이진수→십진수로 읽은 8개의 수).</p>
+      <p>학생이 하는 판단은 <b>어떤 약속을 기준으로 비트를 맞출지 선택하는
+        것</b>입니다. 이니셜 만들기, 그림 그리기, 그리고 둘의 동시 만족 도전.
+        <b>동시 만족은 대부분 실패하며, 그 실패가 발견의 계기입니다</b> —
+        비트는 하나인데 약속마다 요구가 다르다는 것.</p>
+      <p>드래그로 여러 칸을 한 번에 칠할 수 있고, “모두 0 / 모두 1” 버튼이
+        극단값 관찰용입니다. 화면에는 ‘약속’이라는 단어를 쓰지 않았습니다 —
+        학생이 도달해야 할 말이라서요.</p>
+
+      <h3>앱이 담당하는 곳은 조사하기 한 단계입니다</h3>
+      <table>
+        <tr><th>관계 맺기</th><td class="where">수업</td>
+          <td>깨진 글자(뷁, ▯▯▯) 스크린샷 — “왜 이렇게 보일까?”
+            + 01 전이 회수(사진 확대에서 본 픽셀)</td></tr>
+        <tr><th>조사하기</th><td class="where">앱</td>
+          <td>격자 비트를 켜고 끄며 세 해석 비교, 동시 만족 도전</td></tr>
+        <tr><th>패턴 말하기</th><td class="where">클래스룸</td>
+          <td>“같은 격자인데 해석이 왜 다른가” 기록, 모둠 공유</td></tr>
+        <tr><th>정리</th><td class="where">수업</td>
+          <td>학생 표현 → 일반화 ①로 다듬기 +
+            교과서 용어(문자 코드, 픽셀, 비트 수, 샘플링) 연결</td></tr>
+        <tr><th>전이</th><td class="where">수업</td>
+          <td>같은 파일을 텍스트로/이미지로 열어보는 시연 —
+            “확장자가 바로 약속 표시” + 다음 영역(데이터 분석) 예고</td></tr>
+      </table>
+
+      <h3>클래스룸 과제 질문 (복사해서 쓰기)</h3>
+      <ol>
+        <li>격자를 모두 0, 모두 1로 했을 때 그림·글자·수 해석은 각각
+          무엇이었나요?</li>
+        <li>원하는 글자가 나오게 비트를 맞췄을 때 그림 해석은 어떤 모습이었나요?
+          그림과 글자를 동시에 원하는 대로 만들 수 있었나요? 왜 그럴까요?</li>
+        <li>같은 비트인데 해석이 달라지는 이유를 ‘약속’이라는 말을 써서 설명해
+          보세요.</li>
+        <li>01 앱에서 발견한 “잘게 나눌수록 원본에 가깝지만 저장 공간이
+          늘어난다”는 관계가 이미지의 비트 수에서도 성립하나요?
+          교과서에서 예를 찾아 설명하세요.</li>
+      </ol>
+      <p style="color:var(--dim);font-size:14px">1~2는 1차시 끝에, 3은 2차시
+        정리 전에, 4는 3차시 실습 뒤에 안내합니다.
+        3번은 <b>학급 문장을 만든 뒤</b>에 내야 합니다 — 먼저 내면 ‘약속’이라는
+        답을 교사가 준 셈이 됩니다.</p>
+
+    </div>
+  </details>
+
+
+  <!-- ═══════════ 1차시 ═══════════ -->
+  <div class="lesson" id="l1">
+    <h2>1차시 — 같은 격자, 다른 해석</h2>
     <p class="sub">관계 맺기 → 조사하기(앱) → 발견 기록 · 준비물: 학생 기기,
-      앱 주소, 클래스룸 과제(질문 1~3) 게시, 깨진 글자 스크린샷(뷁, ▯▯▯ 등)</p>
+      앱 주소, 깨진 글자 스크린샷, 01에서 쓴 확대 사진, 클래스룸 과제(질문 1~2)</p>
 
     <h3>진행 흐름</h3>
     <table>
       <tr><th style="width:52px">분</th><th style="width:92px">단계</th><th>교사가 하는 일</th></tr>
       <tr>
-        <td class="min">0–7</td><td class="step">관계 맺기</td>
-        <td>깨진 글자 스크린샷을 보여준다.
-          <span class="say">"이런 화면, 본 적 있지? 글자가 왜 이렇게 깨질까?"</span>
-          이어서 지난 단원 회수:
-          <span class="say">"지난 시간 끝에 사진을 확대했더니 뭐가 보였지?
-          그 네모 하나하나는 결국 뭘로 저장돼 있을까?"</span>
-          답은 모으기만 하고 판정하지 않는다.</td>
+        <td class="min">0–8</td><td class="step">관계 맺기</td>
+        <td>깨진 글자 스크린샷을 띄운다(뷁, ▯▯▯, 물음표 상자 등).
+          <span class="say">“이 글자는 원래 뭐였을까? 왜 이렇게 보이는 걸까?”</span>
+          이어서 01 마지막에 던진 질문을 회수한다.
+          <span class="say">“지난 시간에 사진을 확대했더니 네모가 보였지.
+          소리는 시간을 나눴는데, 사진은 무엇을 나눈 거였을까?”</span>
+          답을 정리해주지 않는다. 오늘 앱에서 학생이 스스로 볼 것이다.</td>
       </tr>
       <tr>
-        <td class="min">7–12</td><td class="step">앱 열기</td>
-        <td>주소 안내 후 3분 자유 탐색. 화면의 네 영역(비트 격자·글자·수·그림)이
-          무엇인지 묻는 학생에게는 "켜고 꺼보면 알게 된다"고만.</td>
+        <td class="min">8–12</td><td class="step">앱 열기</td>
+        <td>주소 안내 후 자유 조작. 설명하지 않는다.
+          칸을 눌러보다 화면 오른쪽 세 결과가 함께 변하는 걸 발견하는 학생이
+          나오면, 그 학생 이름을 불러 반 전체에 알린다 — 발견의 주체를
+          교사가 아니라 학생으로 두는 장치다.</td>
       </tr>
       <tr>
         <td class="min">12–30</td><td class="step">조사하기</td>
-        <td>미션을 순서대로 제시한다.
+        <td>미션을 하나씩 제시한다.
           <ol>
-            <li>"모두 0"과 "모두 1" 버튼 — 그림·글자·수가 각각 어떻게 되는가</li>
-            <li>칸 <b>하나만</b> 바꿔보기 — 세 해석이 각각 얼마나 달라지는가</li>
-            <li>수 칸에 65가 나오게 만들기 — 글자 칸에 무엇이 나타나는가</li>
-            <li>자기 이니셜이 글자 칸에 나오게 만들기</li>
-            <li>격자에 그림 그리기(드래그 가능) — 그때 글자 칸은 어떻게 되는가</li>
-            <li><b>동시 만족 도전:</b> 그림도 마음에 들고 글자도 원하는 대로 —
-              둘 다 되게 할 수 있는가</li>
+            <li>“모두 0”, “모두 1” 버튼을 눌러 세 결과가 각각 무엇이 되는지 보기</li>
+            <li><b>딱 한 칸만</b> 바꿔보기 — 세 결과가 각각 얼마나 달라지는가</li>
+            <li>자기 <b>이니셜이 글자 칸에 나오게</b> 비트를 맞춰보기.
+              그때 그림 칸은 어떤 모습인가</li>
+            <li><b>도전</b> — 글자도 원하는 대로, 그림도 원하는 대로.
+              둘을 동시에 만족시킬 수 있는가</li>
           </ol>
-          순회 발문:
-          <span class="say">"똑같은 64칸인데 왜 세 군데가 다르게 읽지?"</span>
-          <span class="say">"그림을 그렸더니 글자가 왜 깨졌을까?"</span>
-          동시 만족에 성공했다고 주장하는 학생이 있으면 학급에 공유시킨다 —
-          대개 우연히 일부만 맞은 것이고, 그 확인 과정 자체가 좋은 토론이 된다.</td>
+          4번에서 대부분 실패한다. <b>이 실패가 이 수업의 핵심 순간이다.</b>
+          실패한 학생에게 답을 주지 말고 발문만 한다.
+          <span class="say">“왜 안 될까? 비트는 하나뿐인데 네가 원하는 건 몇 가지야?”</span>
+          <span class="say">“글자 칸은 이 비트를 어떻게 읽고 있는 것 같아?”</span>
+          <span class="say">“읽는 방법이 세 개인데, 방법을 정한 건 누구야?”</span></td>
       </tr>
       <tr>
         <td class="min">30–40</td><td class="step">기록</td>
-        <td>클래스룸 과제 질문 1~3 작성. 질문 3("'약속'이라는 말을 써서")은
-          이 시점에는 어색해도 좋다고 안내 — 자기 나름의 말로 쓰게 한다.</td>
+        <td>클래스룸 과제 질문 1~2 작성. 조건은 “앱에서 직접 본 것을 근거로
+          쓸 것”. 특히 2번의 “왜 그럴까요?”는 답이 안 나와도 괜찮다고 말해준다 —
+          다음 시간에 함께 풀 문제라고.</td>
       </tr>
       <tr>
         <td class="min">40–45</td><td class="step">마무리</td>
-        <td><span class="say">"같은 0과 1인데 읽는 곳마다 다른 게 나왔지.
-          누가 어떻게 정했길래 그런 걸까? 다음 시간에 밝혀보자."</span></td>
+        <td><span class="say">“같은 64칸인데 세 가지로 읽혔어.
+          읽는 방법이 세 개라는 건데, 그 방법에 이름을 붙일 수 있을까?
+          다음 시간에 여러분 기록을 모아서 찾아보자.”</span>
+          — 답을 말하지 않고 끝낸다.</td>
       </tr>
     </table>
 
     <h3>예상 반응과 대응</h3>
     <ul>
-      <li>"글자 칸에 ▯만 나와요" →
-        <span class="say">"언제 진짜 글자가 나오는지 수 칸을 보면서 찾아봐.
-        몇부터 몇 사이지?"</span> (깨진 글자도 관찰거리다 — 도입의 스크린샷과 연결)</li>
-      <li>"그림 그리면 글자는 어차피 깨지는 거 아니에요?" →
-        <span class="say">"왜 어쩔 수 없을까? 칸은 64개뿐인데 요구는 몇 개지?"</span></li>
-      <li>일찍 끝낸 학생 → 친구가 만든 격자의 수 8개만 보고 그림을 복원할 수
-        있는지 짝 활동(비트열 전달 놀이).</li>
+      <li>“글자가 이상한 기호로 나와요” → 정상이다. 그것 자체가 관계 맺기에서
+        본 깨진 글자와 같은 현상이다.
+        <span class="say">“아까 스크린샷에서 본 것과 비슷하지 않아?”</span></li>
+      <li>“동시에 되는 방법 알려주세요” →
+        <span class="say">“선생님도 못 해. 왜 못 하는지가 오늘 문제야.”</span></li>
+      <li>이니셜을 성공적으로 맞춘 학생 → 그림 칸을 캡처해두게 한다.
+        2차시 모둠 공유에서 좋은 재료가 된다.</li>
+      <li>일찍 끝낸 학생 → “한 행만 남기고 나머지를 다 0으로 만들면 수 칸에
+        어떤 규칙이 보이는지” 찾게 한다(이진수 자릿값 관찰 — 심화).</li>
     </ul>
 
     <div class="dont">
       <b>이 차시에서 하지 말 것</b>
       <ul>
-        <li>'약속', '코드', '아스키' 용어를 교사가 먼저 말하기 —
-          2차시 정리까지 아낀다</li>
-        <li>"글자는 8비트씩 끊어 읽는 거야"라고 구조를 먼저 설명하기 —
-          미션 3(65 만들기)에서 스스로 눈치채게 한다</li>
-        <li>동시 만족 도전을 "안 되는 게 정답"이라고 미리 알려주기</li>
+        <li><b>‘약속’, ‘규칙’, ‘인코딩’ 같은 말을 교사가 먼저 쓰기</b> —
+          앱 화면에도 일부러 넣지 않았다. 학생이 먼저 말하면
+          “그 말 기억해두자”라고만 받는다</li>
+        <li>동시 만족이 왜 안 되는지 설명해주기 — 실패한 채로 1차시를 끝내는
+          것이 의도다</li>
+        <li>문자 코드표(아스키·유니코드)를 미리 보여주기 — 2차시 용어 연결
+          구간의 재료다</li>
+        <li>과제 질문 3번을 이 시간에 내기 — ‘약속’이라는 단어가 들어 있다</li>
       </ul>
     </div>
   </div>
 
-  <!-- ═══════ 2차시 ═══════ -->
-  <div class="lesson">
-    <h2>2차시 — '약속'이라는 이름</h2>
+
+  <!-- ═══════════ 2차시 ═══════════ -->
+  <div class="lesson" id="l2">
+    <h2>2차시 — 약속에 이름 붙이기</h2>
     <p class="sub">패턴 말하기 → 정리(일반화 ①·용어) → 토론 → 전이 · 준비물:
-      1차시 기록, 같은 파일을 텍스트/이미지로 열어 보일 준비(시연용)</p>
+      1차시 클래스룸 기록, 문자 코드표, 같은 파일을 두 방식으로 열어 보일 준비</p>
 
     <h3>진행 흐름</h3>
     <table>
       <tr><th style="width:52px">분</th><th style="width:92px">단계</th><th>교사가 하는 일</th></tr>
       <tr>
         <td class="min">0–10</td><td class="step">패턴 말하기</td>
-        <td>모둠별로 기록을 비교하고 질문 3의 답들을 모은다.
-          <span class="say">"같은 비트가 다르게 읽힌 이유를 모둠의 한 문장으로."</span>
-          모둠 문장을 칠판에 적는다.</td>
+        <td>모둠별로 1차시 기록을 비교한다. 특히 “동시에 안 되는 이유”를
+          모아본다.
+          <span class="say">“모둠이 찾은 이유를 한 문장으로 만들어봐.
+          ‘같은 비트인데 ~하기 때문이다’ 꼴로.”</span>
+          모둠 문장을 칠판에 전부 적는다. 이니셜을 성공시킨 학생의 그림 캡처를
+          함께 띄우면 대비가 선명해진다.</td>
       </tr>
       <tr>
-        <td class="min">10–22</td><td class="step">일반화 다듬기</td>
-        <td>'약속'이 학생 문장에 이미 있으면 그 단어를 중심에 놓고 다듬는다.
-          안 나왔으면 비유로 끌어낸다:
-          <span class="say">"우리 반끼리 '손가락 두 개 = 조용히'라고 정하면
-          그 신호가 통하지. 옆 반에 가면? 왜 안 통할까?"</span>
-          목표는 학생 입에서 "정했으니까/약속했으니까"가 나오는 것.
-          학급 문장으로 다듬어 판서하고 남겨둔다.</td>
+        <td class="min">10–20</td><td class="step">일반화 ① 다듬기</td>
+        <td>칠판 문장들에서 공통 구조를 찾는다. 대개 “읽는 방법이 다르다”,
+          “해석이 다르다” 수준까지 나온다. 여기서 한 걸음만 더 밀어준다.
+          <span class="say">“읽는 방법이 다르다고 했지. 그 방법은 누가, 언제 정한 거야?”</span>
+          <span class="say">“정해두지 않았으면 어떻게 됐을까?”</span>
+          ‘미리 정해둔 것’이라는 말이 나오면 학급 문장으로 굳힌다.
+          <b>학생이 쓴 단어를 최대한 남긴다.</b>
+          이 자리에서 과제 질문 3번을 안내한다.</td>
       </tr>
       <tr>
-        <td class="min">22–32</td><td class="step">용어 연결</td>
-        <td>짧은 강의 구간. 학급 문장 위에 교과서 용어를 얹는다 —
-          문자와 수 사이의 약속(<b>문자 코드</b>), 화면을 나눈 최소 단위
-          (<b>픽셀</b>), 한 픽셀에 쓰는 비트 수와 색의 가짓수, 소리의 경우
-          (지난 단원의 <b>샘플링</b>이 곧 소리 쪽 약속임을 연결).
-          <span class="say">"1차시에 여러분이 찾은 '진짜 글자가 나오는 범위'가
-          바로 문자 코드표의 일부야."</span></td>
+        <td class="min">20–30</td><td class="step">용어 연결</td>
+        <td>짧은 강의가 허용되는 구간. 학급 문장 위에 교과서 용어를 이름표처럼
+          얹는다 — 글자와 비트 사이의 약속(<b>문자 코드</b>), 그림을 이루는
+          한 칸(<b>픽셀</b>), 한 픽셀에 쓰는 0·1의 개수(<b>비트 수</b>),
+          소리에서 점을 찍어 값을 채집하는 일(<b>샘플링</b>, 01의 그 조작).
+          <span class="say">“어제 여러분이 격자로 한 일이 바로 이거야.
+          발견은 이미 했고, 오늘은 이름만 배운 거야.”</span>
+          문자 코드표를 여기서 처음 보여준다.</td>
       </tr>
       <tr>
-        <td class="min">32–40</td><td class="step">토론</td>
-        <td><span class="say">"세상 모든 글자를 하나의 약속에 담아야 할까,
-          나라마다 달라도 될까?"</span>
-          도입의 깨진 글자로 되돌아간다 — 약속이 어긋나면 무슨 일이 생기는지는
-          이미 봤다. 표준화의 이득(어디서나 통함)과 비용(모두가 바꿔야 함)이
-          나오도록 양쪽을 오간다.</td>
+        <td class="min">30–38</td><td class="step">토론</td>
+        <td><span class="say">“약속이 여러 개면 글자가 깨지는 걸 봤지.
+          그럼 세상 모든 글자를 하나의 약속에 담는 게 좋을까?”</span>
+          한 약속의 장점(안 깨짐)과 대가(용량, 기존 자료와의 호환)가 양쪽에서
+          나오게 유도한다. 결론을 내지 않아도 된다 — 논쟁적 질문이다.</td>
       </tr>
       <tr>
-        <td class="min">40–45</td><td class="step">전이</td>
-        <td>같은 파일을 텍스트로/이미지로 열어 보이는 시연.
-          <span class="say">"컴퓨터는 파일을 열 때 어떤 약속으로 읽을지
-          뭘 보고 정할까?"</span> — 확장자가 약속 표시라는 데까지만 가고,
-          다음 영역(데이터 분석) 예고로 끝낸다.</td>
+        <td class="min">38–45</td><td class="step">전이</td>
+        <td>같은 파일을 텍스트 편집기와 이미지 뷰어로 각각 열어 보여준다.
+          <span class="say">“파일은 하나인데 왜 다르게 보일까?
+          확장자가 뭐 하는 건지 알겠어?”</span>
+          — 확장자가 곧 “이 비트를 어떤 약속으로 읽어라”는 표시임을 학생이
+          말하게 한다. 3차시 예고로 끝낸다.</td>
       </tr>
     </table>
 
     <h3>예상 반응과 대응</h3>
     <ul>
-      <li>'약속' 대신 "설정, 규칙, 코드"가 나옴 → 전부 정답으로 받고
-        "그 말들의 공통점"을 물어 한 단어로 수렴시킨다.</li>
-      <li>"그럼 약속만 알면 해킹도 되는 거 아니에요?" → 좋은 확장 질문.
-        "약속을 숨기는 것"이 암호의 출발이라는 한 마디로 받고, 깊이는
-        디지털 문화 영역에서 다룬다고 예고.</li>
+      <li>모둠 문장이 “글자랑 그림은 다르니까요” 수준에서 멈춤 →
+        <span class="say">“다른 건 비트가 아니라 뭐야? 비트는 똑같았잖아.”</span></li>
+      <li>“약속”이라는 말이 끝까지 안 나옴 → ‘미리 정해둔 것’, ‘규칙’,
+        ‘읽는 법’ 무엇이든 학생 표현을 학급 문장으로 쓴다.
+        용어 연결 구간에서 “이걸 어른들은 약속이라고 불러”로 이어주면 된다.
+        <b>교사 문장으로 교체하지 않는다.</b></li>
+      <li>토론이 한쪽으로 쏠림 → 반대편을 교사가 대신 말하지 말고,
+        “반대로 생각하는 사람 있을까?”로 자리를 만든다.</li>
     </ul>
 
     <div class="dont">
       <b>이 차시에서 하지 말 것</b>
       <ul>
-        <li>비유(손가락 신호)를 일반화 다듬기 <b>전에</b> 먼저 꺼내기 —
-          학생 문장이 먼저, 비유는 막혔을 때만</li>
-        <li>문자 코드표 전체를 외우게 하거나 자세히 훑기 — "약속의 목록"이라는
-          정체만 알면 충분</li>
-        <li>토론에서 한쪽(표준화가 옳다)으로 결론 내리기</li>
+        <li>모둠 문장을 걷은 뒤 준비한 ‘정답 일반화’로 교체하기 —
+          병기하고 비교하게 할 것</li>
+        <li>문자 코드표를 일반화 다듬기 전에 보여주기 —
+          표를 보면 “외우면 되는 것”으로 바뀐다</li>
+        <li>토론에서 결론을 내주기 — 정답이 갈리는 질문이다</li>
+        <li>전이 질문의 답(확장자 = 약속 표시)을 교사가 먼저 말하기</li>
       </ul>
     </div>
   </div>
 
-  <!-- ═══════ 3차시 ═══════ -->
-  <div class="lesson">
-    <h2>3차시 — 직접 표현하기 (교과서 실습)</h2>
-    <p class="sub">교과서 실습 + 일반화 ② 확인 · 준비물: 교과서,
-      클래스룸 과제(질문 4) 게시. 앞 단원 앱을 다시 열 수 있게 준비</p>
+
+  <!-- ═══════════ 3차시 ═══════════ -->
+  <div class="lesson" id="l3">
+    <h2>3차시 — 직접 표현해보기</h2>
+    <p class="sub">교과서 실습 → 일반화 ② 확인 · 준비물: 교과서, 학생 기기,
+      2차시에 만든 학급 문장(칠판이나 클래스룸에 남겨둘 것)</p>
 
     <h3>진행 흐름</h3>
     <table>
       <tr><th style="width:52px">분</th><th style="width:92px">단계</th><th>교사가 하는 일</th></tr>
       <tr>
-        <td class="min">0–5</td><td class="step">복습 연결</td>
-        <td>학급 일반화 문장(1·2차시 판서)을 다시 띄운다.
-          <span class="say">"지난 두 시간의 발견을 오늘은 손으로 직접 해본다.
-          문자·이미지·소리를 여러분이 비트로 표현하는 날이야."</span></td>
+        <td class="min">0–5</td><td class="step">연결</td>
+        <td>2차시 학급 문장을 다시 띄운다.
+          <span class="say">“어제 우리가 만든 문장이야. 오늘은 이게 정말
+          문자·그림·소리 모두에 통하는지 직접 해보면서 확인해보자.”</span></td>
       </tr>
       <tr>
-        <td class="min">5–35</td><td class="step">교과서 실습</td>
-        <td>교과서의 표현 활동(문자를 코드로, 이미지를 비트로, 소리를 샘플로
-          나타내는 활동)을 진행한다. 실습 중 순회 발문은 두 일반화로 되돌린다:
-          <span class="say">"지금 네가 정한 건 어떤 약속이야?"</span>
-          <span class="say">"더 정밀하게 표현하려면 무엇이 늘어나?"</span>
-          이미지 활동에서는 픽셀당 비트 수를 바꾸면 색 가짓수와 저장량이
-          함께 변하는 것을 반드시 짚는다 — 일반화 ②가 이미지에서도 성립하는
-          증거다.</td>
+        <td class="min">5–35</td><td class="step">실습</td>
+        <td>교과서의 표현 활동을 진행한다(문자·이미지·소리를 직접 디지털로
+          표현하기). 모둠별로 매체를 나눠 맡기고, 끝나면 서로 설명하게 하면
+          시간이 절약되고 비교가 생긴다.
+          순회하며 매체마다 같은 발문을 던진다.
+          <span class="say">“여기서 약속에 해당하는 건 뭐야?”</span>
+          <span class="say">“더 정밀하게 하려면 무엇을 늘려야 해?
+          늘리면 뭐가 커져?”</span>
+          — 두 번째 발문이 일반화 ②로 가는 길이다.</td>
       </tr>
       <tr>
-        <td class="min">35–42</td><td class="step">일반화 ② 확인</td>
-        <td>클래스룸 과제 질문 4 작성 — 앞 단원에서 발견한 관계(정밀도↔저장
-          공간)가 이미지의 비트 수에서도 성립하는지, 실습에서 예를 찾아 쓰기.
-          <span class="say">"소리에서 발견한 그 관계, 오늘 이미지에서도
-          만났어? 어디서?"</span></td>
-      </tr>
-      <tr>
-        <td class="min">42–45</td><td class="step">확장·마무리</td>
-        <td><span class="say">"이미지는 공간을 나눴고, 소리는 시간을 나눴어.
-          그럼 동영상은 무엇을 나눈 걸까?"</span>
-          — 프레임 개념이 학생 추론으로 나오면 가장 좋다. 단원을 관통한
-          두 일반화를 학급 문장 그대로 다시 읽으며 마친다.</td>
+        <td class="min">35–45</td><td class="step">일반화 ② 확인</td>
+        <td>세 매체에서 나온 “늘리면 커지는 것”을 나란히 적는다 —
+          샘플 개수↑ / 픽셀 수·비트 수↑ / 문자 종류↑ → 모두 저장 용량↑.
+          <span class="say">“01에서 소리로 발견한 관계가 그림과 글자에도
+          그대로 있었네. 이런 문장을 뭐라고 부를 수 있을까?”</span>
+          — 한 단원에서만 통하지 않는 문장이라는 점을 짚어준다.
+          과제 질문 4를 안내하고 마친다.</td>
       </tr>
     </table>
 
     <h3>예상 반응과 대응</h3>
     <ul>
-      <li>실습이 기계적 변환 연습으로 흐름 → 순회 발문을 늘려 "이건 어떤
-        약속인가"로 계속 되돌린다. 변환 자체보다 변환의 <b>근거</b>가 목적.</li>
-      <li>속도 차가 큼 → 빨리 끝낸 학생에게 "자기만의 약속을 새로 만들어
-        짝에게 해독시키기"(자작 코드표 놀이)를 준다 — 약속의 임의성을 몸으로
-        확인하는 심화 활동.</li>
+      <li>실습이 매체별로 시간 차이가 큼 → 소리가 가장 오래 걸린다.
+        모둠 분담을 쓰면 해결되고, 전체가 다 해봐야 한다면 소리를 마지막에
+        배치한다.</li>
+      <li>“이거 앱에서 다 봤는데요” → 좋은 신호다.
+        <span class="say">“그럼 앱에서 본 게 교과서 어디에 나오는지 찾아볼래?”</span>
+        로 연결한다.</li>
+      <li>시간이 부족하면 → 일반화 ② 확인을 클래스룸 과제(질문 4)로 넘기고,
+        다음 단원 첫 5분에 회수한다. 실습을 줄이는 것보다 낫다.</li>
     </ul>
 
     <div class="dont">
       <b>이 차시에서 하지 말 것</b>
       <ul>
-        <li>실습을 진도 빼기로만 소화하기 — 발문 없이 문제 풀이만 하면
-          앞 두 차시와 끊어진 별개 수업이 된다</li>
-        <li>동영상 확장 질문에 교사가 바로 답하기 — 추론할 시간을 준다</li>
+        <li>실습을 순서 따라가기 활동으로 만들기 — 매체가 바뀔 때마다
+          “여기서 약속은 뭐야?”를 물어야 개념이 반복된다</li>
+        <li>일반화 ②를 교사가 문장으로 정리해 나눠주기 —
+          세 매체를 나란히 적어놓고 학생이 잇게 할 것</li>
       </ul>
     </div>
+
+    <h3>단원을 마친 뒤</h3>
+    <p>이 단원 폴더 <code>lesson.md</code>의 「수업 후 기록」을 채웁니다.
+      특히 <b>동시 만족 도전에서 실제로 발견이 일어났는지</b>를 남겨두세요.
+      이 단원 설계의 핵심 장치라, 작동하지 않았다면 앱이나 발문을 고칠 근거가
+      됩니다.</p>
   </div>
 
 </div>
 
 <footer>
-  이 지도안은 이 단원 폴더 <code>lesson.md</code>의 설계를 차시 단위로 풀어쓴
-  것입니다. 설계를 고치면 이 페이지도 함께 고칩니다.
+  이 페이지는 비밀번호가 없어 주소를 아는 사람은 누구나 볼 수 있습니다.
+  원본은 <code>02-data/02-representation/lesson.md</code>이며 이 페이지는
+  사본입니다 — 설계를 고칠 때는 둘을 함께 고칩니다.
 </footer>
 
 </body>
