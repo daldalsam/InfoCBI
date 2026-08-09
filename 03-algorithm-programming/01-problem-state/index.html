@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>다음에 이어서 하려면 무엇을 적어야 할까?</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --ink: #0f172a;
+    --dim: #64748b;
+    --accent: #2563eb;
+    --card: #ffffff;
+    --line: #e2e8f0;
+    --land: #eef4e8;
+    --land-line: #d3e2c6;
+    --water: #d5eaf8;
+    --water-line: #aed4ec;
+    --warn: #dc2626;
+    --good: #047857;   /* 흰 바탕에서 명도 대비 4.5:1을 넘는 초록 */
+    --obj: 72px;          /* 캐릭터 단추 크기 — 좁은 화면에서 줄어든다 */
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px 18px 28px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+  }
+
+  h1 {
+    margin: 0 0 2px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hint { margin: 0 0 16px; font-size: 14px; color: var(--dim); }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    max-width: 560px;
+  }
+
+  /* 시작 판과 목표 판 — 표시만 한다, 조작 대상 아님 */
+  .goalrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .goalbox .glabel {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dim);
+    text-align: center;
+    margin-bottom: 3px;
+  }
+  /* 좁은 화면에서는 두 판이 같이 줄어들어 옆으로 넘치지 않는다 */
+  .goalbox { flex: 0 1 130px; min-width: 0; }
+  .goalbox .mini { width: 100%; }
+  .goal-arrow { color: var(--dim); font-size: 15px; margin-top: 14px; }
+
+  /* 판 — 왼쪽 기슭 | 강 | 오른쪽 기슭 */
+  .scene {
+    display: grid;
+    grid-template-columns: 1fr 180px 1fr;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .bank {
+    background: var(--land);
+    border: 2px solid var(--land-line);
+    border-radius: 10px;
+    padding: 8px 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+    /* 위반 표시가 켜질 때 테두리 색만 바뀐다 — 크기는 그대로 */
+    transition: border-color .15s;
+  }
+  .bank.warn { border-color: var(--warn); }
+  .bank-label {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #55657a;   /* 연두 배경(--land) 위에서도 대비 4.5:1 이상 */
+  }
+
+  /* 강 — 배가 좌우로 오간다 */
+  .water {
+    background: var(--water);
+    border: 2px solid var(--water-line);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+  }
+  .boat {
+    width: 104px;
+    background: rgba(255, 255, 255, .72);
+    border: 2px solid var(--water-line);
+    border-radius: 12px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: transform .45s ease;
+  }
+  .boat-icon { font-size: 26px; line-height: 1; }
+
+  /* 배에 탄 캐릭터 자리 — 비어 있어도 높이를 유지해 배가 출렁이지 않게 */
+  .boat-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 72px;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .cross {
+    width: 100%;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: inherit;
+    padding: 11px 0;   /* 터치 목표 높이 확보 */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cross:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .cross:active { transform: translateY(1px); }
+
+  /* 캐릭터 단추 — 기슭에서는 네모, 배 안에서는 가로로 긴 칩 */
+  .obj {
+    width: var(--obj);
+    height: var(--obj);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+    font-family: inherit;
+  }
+  .obj .icon { font-size: calc(var(--obj) * 0.42); line-height: 1; }
+  .obj .name { font-size: 12px; font-weight: 600; color: var(--dim); }
+  .obj:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .obj:active { transform: translateY(1px); }
+
+  .obj.in-boat {
+    width: 100%;
+    height: 34px;
+    flex-direction: row;
+    gap: 5px;
+    border-radius: 8px;
+  }
+  .obj.in-boat .icon { font-size: 17px; }
+  .obj.in-boat .name { font-size: 11px; }
+  /* 내리기 표시 — 배 안에서만 보인다 */
+  .obj .out { display: none; }
+  .obj.in-boat .out {
+    display: inline;
+    font-size: 10px;
+    color: var(--dim);
+  }
+
+  /* 상태 줄 + 처음부터 */
+  .foot {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .status { font-size: 14px; min-height: 20px; }
+  .status.bad { color: var(--warn); font-weight: 600; }
+  .status.good { color: var(--good); font-weight: 600; }
+  .reset {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--dim);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* 정보 카드 — 앱의 심장. 종류(필요·중복·무관)는 화면에 드러내지 않는다 */
+  .panel + .panel { margin-top: 12px; }
+  h2 { margin: 0 0 2px; font-size: 15px; font-weight: 700; }
+  .cards-hint { margin: 0 0 10px; font-size: 13px; color: var(--dim); }
+
+  .ncount {
+    border: 1px solid var(--line);
+    background: var(--bg);
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 2px 6px;
+  }
+  .ncount strong { font-size: 26px; letter-spacing: -0.02em; }
+  .ncount .note { color: var(--dim); font-size: 13px; }
+  .ncount .mcount { margin-left: auto; color: var(--dim); font-size: 13px; }
+  .ncount .mcount b { color: var(--ink); }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+  }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    min-height: 60px;
+    padding: 8px 10px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    color: var(--dim);
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card .card-name { font-size: 13px; font-weight: 600; }
+  .card .card-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    min-height: 17px;        /* 꺼져 있어도 높이를 차지해 카드가 출렁이지 않게 */
+    visibility: hidden;
+  }
+  .card.on {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+    background: #eff4ff;
+    color: var(--ink);
+  }
+  .card.on .card-value { visibility: visible; }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card:active { transform: translateY(1px); }
+
+  /* 미리보기 — 켠 카드만으로 만들 수 있는 판들. 친구의 눈에 보이는 화면 */
+  .pv-caption { margin: 14px 0 6px; font-size: 13px; color: var(--dim); }
+  .pv-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+    gap: 6px;
+  }
+  .mini {
+    display: grid;
+    grid-template-columns: 1fr 36px 1fr;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--land);
+  }
+  /* 미니 판의 강 — 배는 물 위에서 농부 쪽 기슭에 대어 둔다 */
+  .mini-water {
+    background: var(--water);
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    line-height: 1;
+    padding: 0 2px;
+  }
+  .mini-water.dockL { justify-content: flex-start; }
+  .mini-water.dockR { justify-content: flex-end; }
+  .mini-side {
+    min-height: 46px;
+    padding: 4px 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* 한 줄에 두 개까지만 — 좁은 묶음 안에서 줄바꿈시켜 3개면 2+1, 4개면 2+2 */
+  .mini-side .pack {
+    width: 36px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1px 2px;
+  }
+  .mini-side .pack span {
+    width: 16px;
+    font-size: 14px;
+    line-height: 1.15;
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  @media (max-width: 460px) {
+    :root { --obj: 60px; }
+    body { padding: 14px 12px 24px; }
+    .panel { padding: 10px; }
+    .scene { grid-template-columns: 84px minmax(0, 1fr) 84px; gap: 6px; }
+    .bank { padding: 6px 4px; }
+    .boat { width: 96px; }
+  }
+
+  /* 아주 좁은 화면(320px대) — 배가 물 칸을 넘지 않게 판을 한 단계 더 줄인다 */
+  @media (max-width: 359px) {
+    :root { --obj: 54px; }
+    .scene { grid-template-columns: 74px minmax(0, 1fr) 74px; }
+    .boat { width: 82px; }
+  }
+
+  /* 움직임을 줄이도록 설정한 기기 — 배가 미끄러지지 않고 바로 도착 */
+  @media (prefers-reduced-motion: reduce) {
+    .boat, .bank { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>다음에 이어서 하려면 무엇을 적어야 할까?</h1>
+<p class="hint">농부·늑대·염소·양배추를 누르면 배에 타거나 내립니다. 「건너가기」로 강을 건너 넷 모두 오른쪽 기슭으로 옮겨 보세요.</p>
+
+<section class="panel">
+  <div class="goalrow">
+    <div class="goalbox">
+      <div class="glabel">시작</div>
+      <div id="startMini"></div>
+    </div>
+    <div class="goal-arrow" aria-hidden="true">→</div>
+    <div class="goalbox">
+      <div class="glabel">목표</div>
+      <div id="goalMini"></div>
+    </div>
+  </div>
+  <div class="scene">
+    <div class="bank" id="bankL" role="group" aria-label="왼쪽 기슭">
+      <div class="bank-label" aria-hidden="true">왼쪽 기슭</div>
+    </div>
+    <div class="water" id="water">
+      <div class="boat" id="boatBox" role="group" aria-label="배">
+        <div class="boat-icon" aria-hidden="true">🛶</div>
+        <div class="boat-slots" id="boatSlots"></div>
+        <button class="cross" id="crossBtn" type="button">건너가기</button>
+      </div>
+    </div>
+    <div class="bank" id="bankR" role="group" aria-label="오른쪽 기슭">
+      <div class="bank-label" aria-hidden="true">오른쪽 기슭</div>
+    </div>
+  </div>
+  <div class="foot">
+    <p class="status" id="status" aria-live="polite"></p>
+    <button class="reset" id="resetBtn" type="button">처음부터</button>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>친구가 똑같은 판을 만들 수 있게 알려 주자</h2>
+  <p class="cards-hint">켠 카드의 내용만 친구에게 전해집니다. 몇 장이면 될까요?</p>
+  <div class="ncount" aria-live="polite">
+    <span>적어둔 것만으로 만들 수 있는 판</span>
+    <strong id="nVal">16</strong><span>가지</span>
+    <span class="note" id="nNote"></span>
+    <span class="mcount">켠 카드 <b id="mVal">0</b>장</span>
+  </div>
+  <div class="cards" id="cardsBox"></div>
+  <p class="pv-caption" id="pvCaption"></p>
+  <div class="pv-grid" id="pvGrid" role="group" aria-label="친구가 만들 수 있는 판 그림"></div>
+</section>
+
+<script>
+  // 참고 앱(제미나이 작업물)에서 가져온 상태 모델.
+  // 각 캐릭터는 'L'(왼쪽 기슭) / 'R'(오른쪽 기슭) / 'boat'(배 안).
+  const CHARS = [
+    { id: 'farmer',  name: '농부',   icon: '🧑‍🌾' },
+    { id: 'wolf',    name: '늑대',   icon: '🐺' },
+    { id: 'goat',    name: '염소',   icon: '🐐' },
+    { id: 'cabbage', name: '양배추', icon: '🥬' }
+  ];
+
+  let pos, boatSide, crossing;
+  // 무관 카드(건넌 횟수·마지막에 옮긴 것)가 보여주는 값.
+  let crossCount, lastFerried;
+
+  const bankL = document.getElementById('bankL');
+  const bankR = document.getElementById('bankR');
+  const water = document.getElementById('water');
+  const boatBox = document.getElementById('boatBox');
+  const boatSlots = document.getElementById('boatSlots');
+  const crossBtn = document.getElementById('crossBtn');
+  const statusEl = document.getElementById('status');
+
+  // 단추는 한 번만 만들고 자리만 옮겨 끼운다.
+  // 주의: 옮기는 순간 브라우저가 초점을 놓치므로 render() 끝에서 되돌려준다.
+  const buttons = {};
+  for (const c of CHARS) {
+    const b = document.createElement('button');
+    b.className = 'obj';
+    b.type = 'button';
+    b.innerHTML = '<span class="icon" aria-hidden="true">' + c.icon +
+                  '</span><span class="name">' + c.name + '</span>' +
+                  '<span class="out" aria-hidden="true">내리기 ✕</span>';
+    b.addEventListener('click', () => tapChar(c.id));
+    buttons[c.id] = b;
+  }
+
+  function reset() {
+    pos = { farmer: 'L', wolf: 'L', goat: 'L', cabbage: 'L' };
+    boatSide = 'L';
+    crossing = false;
+    crossCount = 0;
+    lastFerried = null;
+    startTime = Date.now();   // 걸린 시간도 처음부터 다시 잰다. 카드 선택은 그대로
+    render();
+  }
+
+  function aboardCount() {
+    return CHARS.filter(c => pos[c.id] === 'boat').length;
+  }
+
+  // 기슭 캐릭터를 누르면 태우고, 배 안 캐릭터를 누르면 내린다.
+  function tapChar(id) {
+    if (crossing) return;
+    if (pos[id] === 'boat') {           // 내리기 — 배가 닿아 있는 기슭으로
+      pos[id] = boatSide;
+      render();
+      return;
+    }
+    if (pos[id] !== boatSide) {         // 배가 반대쪽에 있으면 못 탄다
+      say('배가 반대쪽 기슭에 있어요.', 'bad');
+      return;
+    }
+    if (aboardCount() >= 2) {           // 정원 2 — 농부까지 두 명
+      say('배는 두 자리라 더 못 타요.', 'bad');
+      return;
+    }
+    pos[id] = 'boat';
+    render();
+  }
+
+  // 건너가기 — 농부가 타고 있어야 움직이고, 도착하면 모두 내린다.
+  function cross() {
+    if (crossing) return;
+    if (pos.farmer !== 'boat') {
+      say('농부가 타야 배가 움직여요.', 'bad');
+      return;
+    }
+    crossing = true;
+    crossCount += 1;
+    const rider = CHARS.find(c => pos[c.id] === 'boat' && c.id !== 'farmer');
+    lastFerried = rider ? rider.name : null;
+
+    boatSide = boatSide === 'L' ? 'R' : 'L';
+    placeBoat();                        // 배가 미끄러져 가는 동안 조작은 잠깐 잠근다
+
+    setTimeout(() => {
+      for (const c of CHARS) if (pos[c.id] === 'boat') pos[c.id] = boatSide;
+      crossing = false;
+      render();
+    }, 470);
+  }
+
+  // 규칙 위반 찾기 — 참고 앱의 경계 조건 그대로:
+  // 배에 탄 캐릭터는 잡아먹히지 않고, 농부가 배에 있으면 배가 있는 쪽으로 간주.
+  function violation() {
+    const fLoc = pos.farmer === 'boat' ? boatSide : pos.farmer;
+    const w = pos.wolf, g = pos.goat, c = pos.cabbage;
+    if (w === g && w !== 'boat' && w !== fLoc)
+      return { side: w, msg: '농부가 없는 쪽에서 늑대가 염소를 노려요!' };
+    if (g === c && g !== 'boat' && g !== fLoc)
+      return { side: g, msg: '농부가 없는 쪽에서 염소가 양배추를 노려요!' };
+    return null;
+  }
+
+  function say(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  // 배를 제 쪽으로 밀어 놓는다 — 강 폭에서 배 폭을 뺀 만큼 이동.
+  function placeBoat() {
+    const range = water.clientWidth - boatBox.offsetWidth - 16;
+    boatBox.style.transform =
+      boatSide === 'L' ? 'translateX(0)' : 'translateX(' + range + 'px)';
+  }
+
+  function render() {
+    // 초점이 캐릭터 단추에 있었다면 기억해 둔다 — 단추를 옮기면 초점이 끊긴다
+    const focused = document.activeElement;
+
+    for (const c of CHARS) {
+      const here = pos[c.id];
+      const box = here === 'boat' ? boatSlots : (here === 'L' ? bankL : bankR);
+      box.appendChild(buttons[c.id]);
+      buttons[c.id].classList.toggle('in-boat', here === 'boat');
+
+      if (here === 'boat') {
+        buttons[c.id].setAttribute('aria-label',
+          c.name + ', 배에 탔음. 누르면 내려요.');
+      } else {
+        const where = here === 'L' ? '왼쪽' : '오른쪽';
+        buttons[c.id].setAttribute('aria-label',
+          c.name + ', ' + where + ' 기슭. 누르면 배에 타요.');
+      }
+    }
+
+    placeBoat();
+
+    const bad = violation();
+    bankL.classList.toggle('warn', !!bad && bad.side === 'L');
+    bankR.classList.toggle('warn', !!bad && bad.side === 'R');
+
+    const allRight = CHARS.every(c => pos[c.id] === 'R');
+    if (bad) say(bad.msg, 'bad');
+    else if (allRight) say('모두 건넜어요! 🎉', 'good');
+    else say('');
+
+    renderCards();   // 판이 바뀌면 켜진 카드의 내용과 N도 따라 바뀐다
+
+    // 키보드 사용자의 자리를 돌려준다 — 옮겨진 단추에 초점을 다시 준다
+    if (focused && focused.classList && focused.classList.contains('obj') &&
+        document.activeElement !== focused) {
+      focused.focus();
+    }
+  }
+
+  // ── 정보 카드 ──────────────────────────────────────────────
+  // 종류: pos(필요) / boat(중복) / irr(무관).
+  // 순서는 일부러 섞어 두었다 — 종류끼리 모여 있으면 배치가 답을 알려준다.
+  const CARD_DEFS = [
+    { id: 'wolf',    label: '늑대의 위치',        type: 'pos' },
+    { id: 'time',    label: '걸린 시간',          type: 'irr' },
+    { id: 'goat',    label: '염소의 위치',        type: 'pos' },
+    { id: 'boat',    label: '배의 위치',          type: 'boat' },
+    { id: 'count',   label: '지금까지 건넌 횟수', type: 'irr' },
+    { id: 'farmer',  label: '농부의 위치',        type: 'pos' },
+    { id: 'color',   label: '배의 색깔',          type: 'irr' },
+    { id: 'cabbage', label: '양배추의 위치',      type: 'pos' },
+    { id: 'last',    label: '마지막에 옮긴 것',   type: 'irr' }
+  ];
+  const SIDE_KO = { L: '왼쪽', R: '오른쪽' };
+  const cardOn = {};
+  let startTime = Date.now();
+
+  const nVal = document.getElementById('nVal');
+  const mVal = document.getElementById('mVal');
+  const nNote = document.getElementById('nNote');
+  const cardsBox = document.getElementById('cardsBox');
+  const pvCaption = document.getElementById('pvCaption');
+  const pvGrid = document.getElementById('pvGrid');
+
+  const cardBtns = {};
+  for (const d of CARD_DEFS) {
+    cardOn[d.id] = false;
+    const b = document.createElement('button');
+    b.className = 'card';
+    b.type = 'button';
+    b.innerHTML = '<span class="card-name">' + d.label + '</span>' +
+                  '<span class="card-value"></span>';
+    b.addEventListener('click', () => {
+      cardOn[d.id] = !cardOn[d.id];
+      renderCards();
+    });
+    cardBtns[d.id] = b;
+    cardsBox.appendChild(b);
+  }
+
+  // 멈춘 판에서의 위치 — 배에 타 있으면 배가 닿아 있는 기슭으로 간주.
+  function effPos(id) {
+    return pos[id] === 'boat' ? boatSide : pos[id];
+  }
+
+  function fmtTime(ms) {
+    const s = Math.floor(ms / 1000);
+    return s < 60 ? s + '초' : Math.floor(s / 60) + '분 ' + (s % 60) + '초';
+  }
+
+  // 켜진 카드가 친구에게 전하는 내용.
+  function cardValue(d) {
+    if (d.type === 'pos') return SIDE_KO[effPos(d.id)];
+    if (d.type === 'boat') return SIDE_KO[boatSide];
+    if (d.id === 'count') return crossCount + '번';
+    if (d.id === 'last') return lastFerried || '없음';
+    if (d.id === 'time') return fmtTime(Date.now() - startTime);
+    return '초록';                        // 배의 색깔
+  }
+
+  // 켠 카드와 맞아떨어지는 판을 16가지 전부에서 골라낸다.
+  // 배는 언제나 농부와 같은 쪽(농부만 노를 젓는다)이라
+  // 「배의 위치」는 농부 칸을 정하는 것과 같다 — 그래서 중복 카드다.
+  // 무관 카드는 어떤 판도 걸러내지 못한다 — 이 무반응이 앱의 핵심 피드백.
+  function matchingBoards() {
+    const sides = ['L', 'R'];
+    const out = [];
+    for (const f of sides) for (const w of sides)
+    for (const g of sides) for (const c of sides) {
+      const board = { farmer: f, wolf: w, goat: g, cabbage: c };
+      let ok = true;
+      for (const d of CARD_DEFS) {
+        if (!cardOn[d.id]) continue;
+        if (d.type === 'pos') ok = ok && board[d.id] === effPos(d.id);
+        else if (d.type === 'boat') ok = ok && board.farmer === boatSide;
+      }
+      if (ok) out.push(board);
+    }
+    return out;
+  }
+
+  function renderCards() {
+    let m = 0;
+    for (const d of CARD_DEFS) {
+      const on = cardOn[d.id];
+      if (on) m += 1;
+      const b = cardBtns[d.id];
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on);
+      const v = on ? cardValue(d) : '';
+      b.querySelector('.card-value').textContent = v;
+      b.setAttribute('aria-label',
+        d.label + ' 카드, ' + (on ? '켜짐 — ' + v : '꺼짐'));
+    }
+    const boards = matchingBoards();
+    const n = boards.length;
+    nVal.textContent = n;
+    mVal.textContent = m;
+    nNote.textContent = n === 1
+      ? '— 친구가 이 판을 정확히 받아요'
+      : '— 친구는 어느 판인지 몰라요';
+
+    renderPreview(boards);
+  }
+
+  // 판 하나를 작은 그림으로 — 미리보기와 시작·목표 표시가 같이 쓴다.
+  // 배(🛶)는 농부 옆에 함께 그린다 — 배가 농부를 따라다니는 게 그림에서 보인다.
+  function miniEl(b) {
+    const gl = [], gr = [], nl = [], nr = [];
+    (b.farmer === 'L' ? gl : gr).push('🧑‍🌾');
+    (b.farmer === 'L' ? nl : nr).push('농부', '배');
+    for (const c of CHARS) {
+      if (c.id === 'farmer') continue;
+      (b[c.id] === 'L' ? gl : gr).push(c.icon);
+      (b[c.id] === 'L' ? nl : nr).push(c.name);
+    }
+    const d = document.createElement('div');
+    d.className = 'mini';
+    d.setAttribute('role', 'img');
+    d.setAttribute('aria-label',
+      '왼쪽: ' + (nl.join(', ') || '없음') +
+      ' / 오른쪽: ' + (nr.join(', ') || '없음'));
+    const pack = a =>
+      '<span class="pack">' +
+      a.map(e => '<span>' + e + '</span>').join('') + '</span>';
+    d.innerHTML =
+      '<div class="mini-side">' + pack(gl) + '</div>' +
+      '<div class="mini-water ' + (b.farmer === 'L' ? 'dockL' : 'dockR') +
+      '">🛶</div>' +
+      '<div class="mini-side">' + pack(gr) + '</div>';
+    return d;
+  }
+
+  // 시작 판과 목표 판 — 표시만 한다(조작 대상 아님)
+  document.getElementById('startMini').appendChild(
+    miniEl({ farmer: 'L', wolf: 'L', goat: 'L', cabbage: 'L' }));
+  document.getElementById('goalMini').appendChild(
+    miniEl({ farmer: 'R', wolf: 'R', goat: 'R', cabbage: 'R' }));
+
+  // 미리보기 — 친구의 눈에 보이는 판들. 어느 것이 진짜인지는 표시하지 않는다.
+  function renderPreview(boards) {
+    pvCaption.textContent = boards.length === 1
+      ? '친구가 그릴 판은 이것 하나예요.'
+      : '친구에게는 아래 판들이 모두 똑같이 가능해 보여요.';
+
+    pvGrid.innerHTML = '';
+    for (const b of boards) pvGrid.appendChild(miniEl(b));
+  }
+
+  // 걸린 시간 카드가 켜져 있으면 1초마다 값만 갱신 — N은 시간과 무관하다.
+  setInterval(() => {
+    if (cardOn.time) {
+      cardBtns.time.querySelector('.card-value').textContent =
+        cardValue(CARD_DEFS.find(d => d.id === 'time'));
+    }
+  }, 1000);
+
+  crossBtn.addEventListener('click', cross);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  window.addEventListener('resize', placeBoat);
+
+  reset();
+</script>
+
+</body>
+</html>
