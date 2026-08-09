@@ -31,7 +31,8 @@ info-class-apps/
 │   └── 02-data/
 │       └── 01-digital-data/      단원별 교사 자료 폴더 (앱 폴더와 같은 경로)
 │           ├── 01-digital-data.html   지도안 — 설계 내용 + 차시별 상세 지도안
-│           └── worksheet-*.docx       학습지 등 수업 자료
+│           └── worksheet-<단원>-lessonN.docx
+│                                 차시별 학습지 등 수업 자료
 ├── 01-computing-system/
 │   ├── 01-system-structure/
 │   └── 03-device-planner/
@@ -160,7 +161,10 @@ teacher/<단원 경로>/<단원명>.html
 
 교사 자료는 **단원 폴더**(`teacher/` + 앱 폴더 경로)에 모읍니다. 지도안은
 `<단원명>.html`(예: `teacher/02-data/01-digital-data/01-digital-data.html`),
-그 옆에 학습지(docx) 같은 수업 자료를 함께 둡니다. 클래스룸 과제 질문은
+그 옆에 학습지(docx) 같은 수업 자료를 함께 둡니다. 학습지 이름은
+`worksheet-<단원>-lessonN.docx`로 차시를 붙이고, 클래스룸 과제 제목도
+`[데이터 01-1차시] …`처럼 차시를 넣습니다 — 한 단원에 과제가 여러 개
+쌓이면 제목만으로 구분되지 않습니다. 클래스룸 과제 질문은
 `lesson.md`(원본)와 지도안에 이미 있으므로 **별도 파일로 만들지 않습니다** —
 사본이 늘면 고칠 때 반드시 한 곳을 놓칩니다.
 `index.html`이라는 이름은 첫 페이지 둘과 앱에만 씁니다.
