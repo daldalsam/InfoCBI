@@ -9,7 +9,10 @@
     --bg: #f7f9fc;
     --ink: #0f172a;
     --dim: #64748b;
-    --wave: #b3c0d1;      /* 원본 곡선 */
+    /* 원본 곡선 — 흰 배경 대비 약 3.5:1. 밝은 교실의 태블릿·프로젝터에서도
+       보이게 진하게 하되, 복원 곡선(--step, 약 5.2:1)보다는 물러나 있어야
+       한다. 원본은 배경이고 복원이 주인공인 관계를 지킬 것 */
+    --wave: #7c8ba1;
     --step: #2563eb;      /* 점만으로 다시 그린 계단 곡선 */
     --dot: #1e3a8a;       /* 채집점 */
     --grid: #e8edf4;
@@ -149,11 +152,13 @@
 
   <div class="panel">
     <div class="readout">
-      <span>채집한 점 <b id="count">2</b> 개</span>
+      <span>채집한 점 <b id="count">6</b> 개</span>
       <span class="arrow">→</span>
-      <span>저장할 숫자 <b id="stored">2</b> 개</span>
+      <span>저장할 숫자 <b id="stored">6</b> 개</span>
     </div>
-    <input type="range" id="precision" min="0" max="100" step="1" value="18"
+    <!-- value=16이면 2 + 1022 × 0.16³ ≈ 6개. 위 표시값과 맞춰 둔다 —
+         자바스크립트가 곧 덮어쓰지만 첫 화면에 틀린 값이 보이지 않게 -->
+    <input type="range" id="precision" min="0" max="100" step="1" value="16"
            autocomplete="off" aria-label="채집 간격">
     <div class="ends"><span>듬성듬성</span><span>촘촘하게</span></div>
   </div>
@@ -198,6 +203,9 @@
     const n = sampleCount();
     countEl.textContent = n;
     storedEl.textContent = n;   // 점 하나가 숫자 하나다
+    // 보조기기는 슬라이더의 원시값(0~100)을 읽는다. 화면에 보이는 것과
+    // 같은 말("채집점 6개")을 읽도록 바꿔준다
+    slider.setAttribute('aria-valuetext', '채집점 ' + n + '개');
 
     ctx.clearRect(0, 0, W, H);
 

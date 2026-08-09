@@ -63,7 +63,8 @@
     border: 1px solid var(--line);
     border-radius: 6px;
     background: var(--off);
-    color: #94a3b8;
+    /* 꺼진 칸의 0 — 배경(--off) 대비 약 4.6:1. 학생이 읽을 글자다 */
+    color: #5b6b80;
     font-size: max(10px, calc(var(--cell) * 0.28));
     padding: 0;
     cursor: pointer;
@@ -93,7 +94,9 @@
   }
   .chars .v { font-size: calc(var(--cell) * 0.55); }
   .nums  .v { font-size: calc(var(--cell) * 0.42); color: var(--dim); min-width: 52px; }
-  .chars .v.blank { color: #cbd5e1; }
+  /* 빈칸 표시 ▯ — 도입의 "깨진 글자"와 잇는 관찰거리라 보여야 한다.
+     글자가 있는 칸보다는 흐리되, 읽을 수는 있는 정도(약 3.1:1) */
+  .chars .v.blank { color: #9aa7b8; }
 
   /* 그림으로 보면 — 격자선 없이 순수한 픽셀만 */
   .pic canvas {
@@ -128,10 +131,17 @@
 
   /* 좁은 화면 — 여백을 줄이고, 글자·수 열이 격자 옆에 남을 만큼만
      칸을 키운다. (여백 24 + 열 78 + 열 사이 20 + 격자 틈 21 = 143 예약,
-     여유 7을 더해 150) */
-  @media (max-width: 460px) {
+     여유 7을 더해 150)
+
+     분기점이 600px인 이유: 제목이 긴 넓은 화면에서는 격자+글자+수가 한 줄에
+     들어가려면 573px가 필요하다. 그보다 좁으면 「수로 보면」이 아래로 떨어져
+     행 줄맞춤(이 앱의 핵심 배치)이 깨진다. 폰 가로와 크롬북 분할 화면이
+     이 구간이라 반드시 좁은 화면 규칙으로 넘겨야 한다.
+     min()으로 46px 상한을 두는 것도 필수 — 없으면 599px에서 칸이 56px까지
+     커졌다가 601px에서 46px로 뚝 떨어진다. */
+  @media (max-width: 600px) {
     body { padding: 12px 12px 20px; }
-    :root { --cell: calc((100vw - 150px) / 8); }
+    :root { --cell: min(46px, calc((100vw - 150px) / 8)); }
     .board { gap: 10px; }
     .col .v  { min-width: 36px; }
     .nums .v { min-width: 42px; }
@@ -182,7 +192,8 @@
   const bitsEl  = document.getElementById('bits');
   const charsEl = document.getElementById('chars');
   const numsEl  = document.getElementById('nums');
-  const pic     = document.getElementById('pic').getContext('2d');
+  const picEl   = document.getElementById('pic');
+  const pic     = picEl.getContext('2d');
 
   // 64개의 칸(버튼)과 행마다 글자 칸·수 칸을 만든다
   const cellBtns = [];
@@ -193,11 +204,16 @@
     // 스크린리더가 어느 칸인지 말해줄 수 있게 행·열 이름을 붙인다
     b.setAttribute('aria-label',
       (Math.floor(i / N) + 1) + '행 ' + (i % N + 1) + '열');
-    // 키보드(엔터·스페이스)로 누른 경우만 여기서 처리한다.
-    // 마우스와 터치는 아래 드래그 그리기가 처리하므로, 여기서도 반응하면
-    // 한 번 눌렀는데 두 번 뒤집혀 제자리가 된다.
-    b.addEventListener('click', (e) => {
-      if (e.detail === 0) { bits[i] ^= 1; render(); }
+    // 키보드는 keydown으로만, 마우스·터치는 아래 드래그 그리기로만 처리한다.
+    // click은 아무도 듣지 않는다 — 두 경로가 같은 click을 함께 처리하면
+    // 한 번 눌렀는데 두 번 뒤집혀 제자리가 되기 때문.
+    // (click에서 e.detail로 키보드를 가려내는 방법은 쓰지 않는다. 터치 탭에도
+    //  detail을 0으로 주는 브라우저가 있어 그 기기에서는 탭이 안 먹는다.)
+    b.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      e.preventDefault();        // 브라우저가 click을 만들지 않게
+      bits[i] ^= 1;
+      render();
     });
     bitsEl.appendChild(b);
     cellBtns.push(b);
@@ -224,8 +240,10 @@
     activeId = e.pointerId;
     // 포인터를 격자에 붙잡아 두면 격자 밖으로 나가도 이동·놓기 신호가
     // 계속 온다. 밖에 있는 동안은 lastX/lastY만 갱신되고 칠해지지는
-    // 않아서, 다시 들어올 때 나간 지점과 직선으로 이어지는 오류가 없다
-    bitsEl.setPointerCapture(e.pointerId);
+    // 않아서, 다시 들어올 때 나간 지점과 직선으로 이어지는 오류가 없다.
+    // 실패해도 그리기는 계속한다 — 여기서 예외가 나면 아래 코드가
+    // 통째로 건너뛰어져 painting이 true로 굳고 격자가 먹통이 된다
+    try { bitsEl.setPointerCapture(e.pointerId); } catch (_) {}
     paint = bits[i] ^ 1;         // 누른 칸은 뒤집고, 그 값으로 계속 칠한다
     bits[i] = paint;
     lastX = e.clientX;
@@ -281,9 +299,16 @@
     return v;
   }
 
+  // 직전에 화면에 넣은 값. 바뀐 것만 다시 넣기 위해 기억해 둔다.
+  // 글자·수 열은 aria-live 영역이라, 안 바뀐 칸까지 다시 넣으면
+  // 보조기기가 16줄을 통째로 다시 읽는다(드래그 중에는 초당 수십 번).
+  const shown = { bits: new Int8Array(N * N).fill(-1), chars: [], nums: [] };
+
   function render() {
     // 비트 칸 — 켜짐/꺼짐과 1/0 표시
     for (let i = 0; i < N * N; i++) {
+      if (shown.bits[i] === bits[i]) continue;
+      shown.bits[i] = bits[i];
       cellBtns[i].className = bits[i] ? 'on' : '';
       cellBtns[i].textContent = bits[i] ? '1' : '0';
       cellBtns[i].setAttribute('aria-pressed', bits[i] ? 'true' : 'false');
@@ -294,23 +319,30 @@
       const v = rowValue(r);
       // 문자 코드에 보이는 글자가 있는 값(33~126)만 글자로 나온다.
       // 나머지는 ▯ — 깨진 글자처럼 보이는 것도 관찰거리다.
-      if (v >= 33 && v <= 126) {
-        charCells[r].textContent = String.fromCharCode(v);
-        charCells[r].classList.remove('blank');
-      } else {
-        charCells[r].textContent = '▯';
-        charCells[r].classList.add('blank');
+      const ch = (v >= 33 && v <= 126) ? String.fromCharCode(v) : '▯';
+      if (shown.chars[r] !== ch) {
+        shown.chars[r] = ch;
+        charCells[r].textContent = ch;
+        charCells[r].classList.toggle('blank', ch === '▯');
       }
-      numCells[r].textContent = v;
+      if (shown.nums[r] !== v) {
+        shown.nums[r] = v;
+        numCells[r].textContent = v;
+      }
     }
 
     // 그림 — 같은 비트를 픽셀로. 켜짐 = 검정
     pic.fillStyle = '#ffffff';
     pic.fillRect(0, 0, N, N);
     pic.fillStyle = '#0f172a';
+    let on = 0;
     for (let i = 0; i < N * N; i++) {
-      if (bits[i]) pic.fillRect(i % N, Math.floor(i / N), 1, 1);
+      if (bits[i]) { pic.fillRect(i % N, Math.floor(i / N), 1, 1); on++; }
     }
+    // 그림은 캔버스라 보조기기가 내용을 볼 수 없다. 몇 칸이 검은지라도
+    // 알려준다 — 고정 문구로 두면 조작해도 설명이 그대로다
+    picEl.setAttribute('aria-label',
+      '같은 비트를 그림으로 그린 것 — 64칸 중 ' + on + '칸이 검은 픽셀');
   }
 
   render();

@@ -72,11 +72,15 @@
     letter-spacing: -0.01em;
     line-height: 1.35;
   }
+  /* 아이콘은 이모지 대신 직접 그린 그림(SVG)을 쓴다. 이모지는 기기마다
+     모양이 다르고 어떤 기기에서는 색 없는 검은 글자로 나온다.
+     장식이므로 보조기기에는 숨긴다(aria-hidden) */
   .app .icon {
     display: block;
     margin-bottom: 10px;
-    font-size: 26px;
-    line-height: 1;
+    width: 30px;
+    height: 30px;
+    color: var(--accent);
   }
 </style>
 </head>
@@ -87,12 +91,27 @@
 
     <nav class="apps">
       <a class="app" href="02-data/01-digital-data/index.html">
-        <span class="icon">〰️</span>
+        <!-- 물결 위에 채집점이 찍힌 모양 -->
+        <svg class="icon" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+          <path d="M2 20 C6 8, 11 8, 15 15 S24 22, 28 10"
+                stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+          <circle cx="6.5" cy="12.4" r="2.4" fill="currentColor"/>
+          <circle cx="15" cy="15" r="2.4" fill="currentColor"/>
+          <circle cx="24" cy="14.6" r="2.4" fill="currentColor"/>
+        </svg>
         <span class="unit">데이터 · 디지털 형태의 데이터</span>
         <span class="name">점 몇 개면 될까?</span>
       </a>
       <a class="app" href="02-data/02-representation/index.html">
-        <span class="icon">🔳</span>
+        <!-- 비트 격자 모양 — 일부만 켜져 있음 -->
+        <svg class="icon" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+          <rect x="3"  y="3"  width="10" height="10" rx="2" fill="currentColor"/>
+          <rect x="17" y="3"  width="10" height="10" rx="2"
+                stroke="currentColor" stroke-width="2"/>
+          <rect x="3"  y="17" width="10" height="10" rx="2"
+                stroke="currentColor" stroke-width="2"/>
+          <rect x="17" y="17" width="10" height="10" rx="2" fill="currentColor"/>
+        </svg>
         <span class="unit">데이터 · 다양한 데이터의 디지털 표현</span>
         <span class="name">그림일까, 글자일까, 수일까?</span>
       </a>
