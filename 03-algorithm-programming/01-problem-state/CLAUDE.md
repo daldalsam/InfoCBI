@@ -30,10 +30,14 @@
   소단원명(문제의 상태와 구조화)에 '상태·구조화'가 들어 있어, 발견 전에
   용어를 주지 않는 원칙에 따라 쓰지 않았다. 바꾸려면 루트 `index.html`의
   `.unit`만 고치면 된다.
+- **지도안·학습지 완료** — 지도안
+  (`teacher/03-algorithm-programming/01-problem-state/01-problem-state.html`),
+  학습지 2종(`worksheet-03-01-problem-state-lesson1/2.docx`), 교사용 첫 페이지
+  단원 줄. 1차시 학습지는 금지 용어('상태·구조화') 없음 확인 — **1차시
+  자료에는 이 낱말들을 쓰면 안 된다**(용어는 2차시 용어 연결에서 처음).
+  2차시 학습지 배부는 용어 연결 단계(22분) 이후.
 - 다음: 배포 후 학생 기기(태블릿·크롬북)에서 실제 확인(교사가 직접) →
-  교사용 지도안
-  (`teacher/03-algorithm-programming/01-problem-state/01-problem-state.html`)과
-  차시별 학습지 2종 → 수업 후 `lesson.md` 8번(수업 후 기록) 채우기.
+  수업 후 `lesson.md` 8번(수업 후 기록) 채우기.
 
 ## 결정사항
 
