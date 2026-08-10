@@ -457,7 +457,8 @@
       icons: cardOn.shapes ? ['▲', '●', '■']
            : st ? ['🐱', '🐤', '🌾'] : ['🐺', '🐐', '🥬'],
       mover:     bare ? '옮기는 이' : st ? '주인' : '농부',
-      moverIcon: bare ? '●' : st ? '🧑' : '🧑‍🌾',
+      // ◆ — 그림 바꾸기의 염소 도형(●)과 겹치지 않는 모양이어야 한다
+      moverIcon: bare ? '◆' : st ? '🧑' : '🧑‍🌾',
       bankL: bare ? '왼 칸' : st ? '마당' : '왼쪽 기슭',
       bankR: bare ? '오른 칸' : st ? '집' : '오른쪽 기슭',
       veh:   bare ? '' : st ? '🧺' : '🛶',
