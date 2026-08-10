@@ -196,7 +196,8 @@
     font-family: inherit;
   }
   .obj .icon { font-size: calc(var(--obj) * 0.42); line-height: 1; }
-  .obj .name { font-size: 12px; font-weight: 600; color: var(--dim); }
+  /* 「옮기는 이」가 가장 긴 이름 — 줄바꿈 없이 한 줄로 */
+  .obj .name { font-size: 12px; font-weight: 600; color: var(--dim); white-space: nowrap; }
   .obj:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .obj:active { transform: translateY(1px); }
 
@@ -208,7 +209,12 @@
     border-radius: 8px;
   }
   .obj.in-boat .icon { font-size: 17px; }
-  .obj.in-boat .name { font-size: 11px; }
+  .obj.in-boat .name {
+    font-size: 11px;
+    min-width: 0;              /* 자리가 모자라면 힌트(✕)보다 이름이 우선 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
   .obj .out { display: none; }
   .obj.in-boat .out {
     display: inline;
@@ -373,6 +379,9 @@
     .scene { grid-template-columns: 74px minmax(0, 1fr) 74px; }
     .boat { width: 82px; }
     .boat.big { width: 94px; }
+    /* 「옮기는 이」가 온전히 보이도록 ✕ 힌트가 자리를 양보한다 —
+       칩 전체가 버튼이라 내리기 동작과 보조기기 안내는 그대로 */
+    .obj.in-boat .out { display: none; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -458,7 +467,7 @@
            : st ? ['🐱', '🐤', '🌾'] : ['🐺', '🐐', '🥬'],
       // 등장 인물은 이름·그림 카드만 바꾼다 — 무대 카드(강과 배 지우기)는
       // 강·배 그림과 강 어휘(기슭·건너가기)만 지우고 인물을 건드리지 않는다.
-      mover:     st ? '주인' : '농부',
+      mover:     cardOn.rename ? '옮기는 이' : st ? '주인' : '농부',
       // ◆ — 염소 도형(●)과 겹치지 않는 모양이어야 한다
       moverIcon: cardOn.shapes ? '◆' : st ? '🧑' : '🧑‍🌾',
       bankL: bare ? '왼 칸' : st ? '마당' : '왼쪽 기슭',
@@ -515,9 +524,11 @@
     const b = document.createElement('button');
     b.className = 'obj';
     b.type = 'button';
+    // 내리기 힌트는 ✕만 — 「옮기는 이」처럼 긴 이름과 자리를 다투지 않게
+    // (01의 「내리기 ✕」에서 줄임. 뜻은 aria-label의 「누르면 내려요」가 전달)
     b.innerHTML = '<span class="icon" aria-hidden="true"></span>' +
                   '<span class="name"></span>' +
-                  '<span class="out" aria-hidden="true">내리기 ✕</span>';
+                  '<span class="out" aria-hidden="true">✕</span>';
     b.addEventListener('click', () => tapChar(id));
     buttons[id] = b;
   }
@@ -567,7 +578,7 @@
     if (crossing) return;
     const s = skin();
     if (pos.mover !== 'boat') {
-      say(s.river ? '농부가 타야 배가 움직여요.'
+      say(s.river ? ga(s.mover) + ' 타야 배가 움직여요.'
                   : ga(s.mover) + ' 함께 가야 해요.', 'bad');
       return;
     }
