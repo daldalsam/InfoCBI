@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>어디까지 바꿔도 될까?</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --ink: #0f172a;
+    --dim: #64748b;
+    --accent: #2563eb;
+    --card: #ffffff;
+    --line: #e2e8f0;
+    --land: #eef4e8;
+    --land-line: #d3e2c6;
+    --water: #d5eaf8;
+    --water-line: #aed4ec;
+    --warn: #dc2626;
+    --good: #047857;
+    --obj: 72px;          /* 캐릭터 단추 크기 — 좁은 화면에서 줄어든다 */
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px 18px 28px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+  }
+
+  h1 {
+    margin: 0 0 2px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hint { margin: 0 0 16px; font-size: 14px; color: var(--dim); }
+
+  /* 배치 — 넓은 화면은 판 옆에 숫자, 좁은 화면은 숫자가 위에 붙어 따라온다 */
+  .top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 150px;
+    grid-template-areas: "board solve" "cards solve";
+    gap: 12px;
+    align-items: start;
+    max-width: 726px;
+  }
+  .board-panel { grid-area: board; }
+  .cards-panel { grid-area: cards; }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  /* 가장 짧은 풀이 — 문제의 지문. 카드에만 반응하고 판 조작으로는 변하지 않는다 */
+  .solve {
+    grid-area: solve;
+    position: sticky;
+    top: 12px;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .05);
+  }
+  .solve-label { font-size: 13px; font-weight: 600; color: var(--dim); }
+  .solve-val {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .solve-val .solve-unit { font-size: 16px; font-weight: 700; margin-left: 2px; }
+  /* 풀 수 없음 — 경고색 없이 담담하게 글자만 */
+  .solve-val.none { font-size: 19px; line-height: 1.3; padding: 8px 0; }
+
+  /* 판 — 왼쪽 | 가운데 | 오른쪽 (01 앱의 판 재사용) */
+  .scene {
+    display: grid;
+    grid-template-columns: 1fr 180px 1fr;
+    gap: 8px;
+    align-items: stretch;
+  }
+
+  .bank {
+    background: var(--land);
+    border: 2px solid var(--land-line);
+    border-radius: 10px;
+    padding: 8px 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+    transition: border-color .15s;
+  }
+  .bank-label {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #55657a;
+  }
+
+  .water {
+    background: var(--water);
+    border: 2px solid var(--water-line);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+  }
+  .boat {
+    width: 104px;
+    background: rgba(255, 255, 255, .72);
+    border: 2px solid var(--water-line);
+    border-radius: 12px;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    transition: transform .45s ease;
+  }
+  .boat-icon { font-size: 26px; line-height: 1; }
+
+  .boat-slots {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 72px;
+    justify-content: center;
+    width: 100%;
+  }
+  /* 배 두 자리로 — 배가 커져서 셋(옮기는 이 + 둘)이 들어간다 */
+  .boat.big { width: 118px; }
+  .boat.big .boat-slots { min-height: 110px; }
+
+  /* 무대 스킨 — 완전히 다른 이야기: 마당과 집 사이 길, 바구니 */
+  .stage-home .water { background: #f3ecd9; border-color: #e3d6b1; }
+  .stage-home .boat { border-color: #e3d6b1; }
+  .stage-home #bankR { background: #fdf3e3; border-color: #eed9b2; }
+  /* 무대 스킨 — 강과 배 지우기: 칸 둘과 옮기는 이만 남는다 */
+  .stage-bare .bank { background: var(--bg); border-color: var(--line); }
+  .stage-bare .water { background: transparent; border-color: transparent; }
+  .stage-bare .boat { background: transparent; border-color: var(--line); }
+  .stage-bare .boat-icon { display: none; }
+  /* 위반 표시는 무대와 무관하게 남는다 — 금지는 그림이 아니라 규칙이므로 */
+  .scene .bank.warn { border-color: var(--warn); }
+
+  .cross {
+    width: 100%;
+    border: 0;
+    border-radius: 8px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: inherit;
+    padding: 11px 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .cross:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .cross:active { transform: translateY(1px); }
+
+  /* 캐릭터 단추 — 기슭에서는 네모, 배 안에서는 가로로 긴 칩 (01 재사용) */
+  .obj {
+    width: var(--obj);
+    height: var(--obj);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+    font-family: inherit;
+  }
+  .obj .icon { font-size: calc(var(--obj) * 0.42); line-height: 1; }
+  .obj .name { font-size: 12px; font-weight: 600; color: var(--dim); }
+  .obj:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .obj:active { transform: translateY(1px); }
+
+  .obj.in-boat {
+    width: 100%;
+    height: 34px;
+    flex-direction: row;
+    gap: 5px;
+    border-radius: 8px;
+  }
+  .obj.in-boat .icon { font-size: 17px; }
+  .obj.in-boat .name { font-size: 11px; }
+  .obj .out { display: none; }
+  .obj.in-boat .out {
+    display: inline;
+    font-size: 10px;
+    color: var(--dim);
+  }
+
+  /* 규칙 범례 — 처음에는 이야기 문장 두 줄. 「이야기 지우기」가 지우는 대상 */
+  .legend { margin-top: 10px; }
+  .legend .story {
+    margin: 2px 0;
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.5;
+  }
+  .legend .bans {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 24px;
+    padding: 4px 0 2px;
+  }
+  .ban-pair { display: inline-flex; align-items: center; gap: 7px; }
+  .ban-pair .ic { font-size: 20px; line-height: 1; }
+  .ban-line {
+    position: relative;
+    width: 30px;
+    height: 2px;
+    background: var(--warn);
+    border-radius: 1px;
+  }
+  .ban-line::after {
+    content: '✕';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--card);
+    color: var(--warn);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0 1px;
+  }
+
+  .foot {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .status { font-size: 14px; min-height: 20px; margin: 0; }
+  .status.bad { color: var(--warn); font-weight: 600; }
+  .status.good { color: var(--good); font-weight: 600; }
+  .reset {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--dim);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .reset:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* 바꾸기 카드 — 종류를 색이나 묶음으로 드러내지 않는다 */
+  h2 { margin: 0 0 2px; font-size: 15px; font-weight: 700; }
+  .cards-hint { margin: 0 0 10px; font-size: 13px; color: var(--dim); }
+
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+    gap: 8px;
+  }
+  .card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    min-height: 56px;
+    padding: 10px 12px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--dim);
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .card .card-name { flex: 1; font-size: 13px; font-weight: 600; line-height: 1.35; }
+  .card .sw {
+    flex: none;
+    width: 34px;
+    height: 20px;
+    border-radius: 10px;
+    background: #cbd5e1;
+    position: relative;
+    transition: background .15s;
+  }
+  .card .sw::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .25);
+    transition: transform .15s;
+  }
+  .card.on {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+    background: #eff4ff;
+    color: var(--ink);
+  }
+  .card.on .sw { background: var(--accent); }
+  .card.on .sw::after { transform: translateX(14px); }
+  .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .card:active { transform: translateY(1px); }
+
+  /* 좁은 화면 — 숫자가 판과 카드 사이에서 화면 위에 붙어 따라온다 */
+  @media (max-width: 640px) {
+    .top { display: block; }
+    .solve {
+      position: sticky;
+      top: 8px;
+      z-index: 5;
+      flex-direction: row;
+      justify-content: space-between;
+      margin: 12px 0;
+      padding: 10px 16px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, .10);
+    }
+    .solve-val { font-size: 28px; }
+    .solve-val.none { font-size: 17px; padding: 0; }
+  }
+
+  @media (max-width: 460px) {
+    :root { --obj: 60px; }
+    body { padding: 14px 12px 24px; }
+    .panel { padding: 10px; }
+    .scene { grid-template-columns: 84px minmax(0, 1fr) 84px; gap: 6px; }
+    .bank { padding: 6px 4px; }
+    .boat { width: 96px; }
+    .boat.big { width: 110px; }
+  }
+
+  @media (max-width: 420px) {
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .card { padding: 8px 10px; }
+  }
+
+  /* 아주 좁은 화면(320px대) — 배가 가운데 칸을 넘지 않게 판을 한 단계 더 줄인다 */
+  @media (max-width: 359px) {
+    :root { --obj: 54px; }
+    .scene { grid-template-columns: 74px minmax(0, 1fr) 74px; }
+    .boat { width: 82px; }
+    .boat.big { width: 94px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .boat, .bank, .card .sw, .card .sw::after { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>어디까지 바꿔도 될까?</h1>
+<p class="hint">카드를 켜고 끄면서 「가장 짧은 풀이」 숫자가 어떻게 되는지 보세요. 판은 직접 움직여 확인할 수 있어요.</p>
+
+<div class="top">
+  <section class="panel board-panel">
+    <div class="scene" id="scene">
+      <div class="bank" id="bankL" role="group" aria-label="왼쪽 기슭">
+        <div class="bank-label" id="labelL" aria-hidden="true">왼쪽 기슭</div>
+      </div>
+      <div class="water" id="water">
+        <div class="boat" id="boatBox" role="group" aria-label="배">
+          <div class="boat-icon" id="vehIcon" aria-hidden="true">🛶</div>
+          <div class="boat-slots" id="boatSlots"></div>
+          <button class="cross" id="crossBtn" type="button">건너가기</button>
+        </div>
+      </div>
+      <div class="bank" id="bankR" role="group" aria-label="오른쪽 기슭">
+        <div class="bank-label" id="labelR" aria-hidden="true">오른쪽 기슭</div>
+      </div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="foot">
+      <p class="status" id="status" aria-live="polite"></p>
+      <button class="reset" id="resetBtn" type="button">처음부터</button>
+    </div>
+  </section>
+
+  <aside class="solve" id="solveBox" aria-live="polite" aria-atomic="true">
+    <span class="solve-label">가장 짧은 풀이</span>
+    <strong class="solve-val" id="solveVal"></strong>
+  </aside>
+
+  <section class="panel cards-panel">
+    <h2>바꾸기 카드</h2>
+    <p class="cards-hint">누르면 켜지고, 다시 누르면 꺼집니다. 몇 장이든 켤 수 있어요.</p>
+    <div class="cards" id="cardsBox"></div>
+  </section>
+</div>
+
+<script>
+  // ── 등장 요소 — 역할은 고정, 이름·그림·무대는 카드가 정한다.
+  // o1이 o2를, o2가 o3를 먹는다 (늑대→염소→양배추 / 고양이→병아리→쌀).
+  const CHARS = ['mover', 'o1', 'o2', 'o3'];
+  const OBJ_IDX = { o1: 0, o2: 1, o3: 2 };
+
+  let pos, boatSide, crossing, boardOrder;
+
+  // ── 바꾸기 카드 9장 — 종류(겉/규칙)를 섞어 배치했다. 정렬하지 말 것.
+  const CARD_DEFS = [
+    { id: 'rename',   label: '이름 바꾸기' },
+    { id: 'noBanWG',  label: '늑대-염소 금지 없애기' },
+    { id: 'shapes',   label: '그림 바꾸기' },
+    { id: 'newStory', label: '완전히 다른 이야기' },
+    { id: 'bigBoat',  label: '배 두 자리로' },
+    { id: 'noStory',  label: '이야기 지우기' },
+    { id: 'noReturn', label: '건넌 것은 다시 안 데려오기' },
+    { id: 'noStage',  label: '강과 배 지우기' },
+    { id: 'noBanGC',  label: '염소-양배추 금지 없애기' }
+  ];
+  const cardOn = {};
+  for (const d of CARD_DEFS) cardOn[d.id] = false;
+
+  // 카드 상태 → 화면에 쓸 이름·그림·무대. 카드끼리 겹치면 벗기는 쪽이 이긴다.
+  function skin() {
+    const st = cardOn.newStory, bare = cardOn.noStage;
+    return {
+      names: cardOn.rename ? ['A', 'B', 'C']
+           : st ? ['고양이', '병아리', '쌀'] : ['늑대', '염소', '양배추'],
+      icons: cardOn.shapes ? ['▲', '●', '■']
+           : st ? ['🐱', '🐤', '🌾'] : ['🐺', '🐐', '🥬'],
+      mover:     bare ? '옮기는 이' : st ? '주인' : '농부',
+      moverIcon: bare ? '●' : st ? '🧑' : '🧑‍🌾',
+      bankL: bare ? '왼 칸' : st ? '마당' : '왼쪽 기슭',
+      bankR: bare ? '오른 칸' : st ? '집' : '오른쪽 기슭',
+      veh:   bare ? '' : st ? '🧺' : '🛶',
+      crossLabel: (bare || st) ? '옮기기' : '건너가기',
+      river: !bare && !st,
+      stageClass: bare ? 'stage-bare' : st ? 'stage-home' : 'stage-river'
+    };
+  }
+  function charName(id, s) {
+    return id === 'mover' ? s.mover : s.names[OBJ_IDX[id]];
+  }
+  function charIcon(id, s) {
+    return id === 'mover' ? s.moverIcon : s.icons[OBJ_IDX[id]];
+  }
+
+  // 받침에 따라 조사를 붙인다 — 이름이 A·B·C나 쌀로 바뀌어도 문장이 성립하게.
+  function batchim(word) {
+    const ch = word.charCodeAt(word.length - 1);
+    return ch >= 0xAC00 && ch <= 0xD7A3 && (ch - 0xAC00) % 28 > 0;
+  }
+  const ga   = w => w + (batchim(w) ? '이' : '가');
+  const neun = w => w + (batchim(w) ? '은' : '는');
+  const reul = w => w + (batchim(w) ? '을' : '를');
+  const wa   = w => w + (batchim(w) ? '과' : '와');
+
+  // 지금 살아 있는 금지 쌍 — 규칙 카드가 여기서 지운다.
+  function activeBans() {
+    const out = [];
+    if (!cardOn.noBanWG) out.push(['o1', 'o2']);
+    if (!cardOn.noBanGC) out.push(['o2', 'o3']);
+    return out;
+  }
+
+  const bankL = document.getElementById('bankL');
+  const bankR = document.getElementById('bankR');
+  const labelL = document.getElementById('labelL');
+  const labelR = document.getElementById('labelR');
+  const scene = document.getElementById('scene');
+  const water = document.getElementById('water');
+  const boatBox = document.getElementById('boatBox');
+  const boatSlots = document.getElementById('boatSlots');
+  const vehIcon = document.getElementById('vehIcon');
+  const crossBtn = document.getElementById('crossBtn');
+  const statusEl = document.getElementById('status');
+  const legend = document.getElementById('legend');
+  const solveVal = document.getElementById('solveVal');
+  const cardsBox = document.getElementById('cardsBox');
+
+  // 캐릭터 단추는 한 번만 만들고 자리만 옮겨 끼운다 (01 재사용).
+  const buttons = {};
+  for (const id of CHARS) {
+    const b = document.createElement('button');
+    b.className = 'obj';
+    b.type = 'button';
+    b.innerHTML = '<span class="icon" aria-hidden="true"></span>' +
+                  '<span class="name"></span>' +
+                  '<span class="out" aria-hidden="true">내리기 ✕</span>';
+    b.addEventListener('click', () => tapChar(id));
+    buttons[id] = b;
+  }
+
+  const passengerCap = () => cardOn.bigBoat ? 2 : 1;
+  const aboardPassengers = () =>
+    CHARS.filter(id => id !== 'mover' && pos[id] === 'boat').length;
+
+  function reset() {
+    // 판만 처음으로 — 카드 선택은 학생의 실험이라 그대로 둔다 (01과 대칭)
+    pos = { mover: 'L', o1: 'L', o2: 'L', o3: 'L' };
+    boatSide = 'L';
+    crossing = false;
+    boardOrder = [];
+    render();
+  }
+
+  function tapChar(id) {
+    if (crossing) return;
+    const s = skin();
+    if (pos[id] === 'boat') {            // 내리기 — 배가 닿아 있는 쪽으로
+      pos[id] = boatSide;
+      boardOrder = boardOrder.filter(x => x !== id);
+      render();
+      return;
+    }
+    if (pos[id] !== boatSide) {
+      say(s.river ? '배가 반대쪽 기슭에 있어요.'
+                  : ga(s.mover) + ' 반대쪽에 있어요.', 'bad');
+      return;
+    }
+    if (id !== 'mover' && cardOn.noReturn && pos[id] === 'R') {
+      say('건넌 것은 다시 데려올 수 없어요.', 'bad');
+      return;
+    }
+    if (id !== 'mover' && aboardPassengers() >= passengerCap()) {
+      say('자리가 없어요.', 'bad');
+      return;
+    }
+    pos[id] = 'boat';
+    if (id !== 'mover') boardOrder.push(id);
+    render();
+  }
+
+  function cross() {
+    if (crossing) return;
+    const s = skin();
+    if (pos.mover !== 'boat') {
+      say(s.river ? '농부가 타야 배가 움직여요.'
+                  : ga(s.mover) + ' 함께 가야 해요.', 'bad');
+      return;
+    }
+    crossing = true;
+    boatSide = boatSide === 'L' ? 'R' : 'L';
+    placeBoat();
+    setTimeout(() => {
+      for (const id of CHARS) if (pos[id] === 'boat') pos[id] = boatSide;
+      boardOrder = [];
+      crossing = false;
+      render();
+    }, 470);
+  }
+
+  // 규칙 위반 찾기 — 살아 있는 금지 쌍만 본다. 배에 탄 것은 잡아먹히지 않고,
+  // 옮기는 이가 배에 있으면 배가 닿은 쪽으로 간주 (01의 경계 조건 그대로).
+  function violation() {
+    const s = skin();
+    const mLoc = pos.mover === 'boat' ? boatSide : pos.mover;
+    for (const [x, y] of activeBans()) {
+      if (pos[x] === pos[y] && pos[x] !== 'boat' && pos[x] !== mLoc) {
+        const nx = charName(x, s), ny = charName(y, s);
+        const msg = cardOn.noStory
+          ? ga(s.mover) + ' 없는 쪽에 ' + wa(nx) + ' ' + ga(ny) + ' 함께 있어요!'
+          : ga(s.mover) + ' 없는 쪽에서 ' + ga(nx) + ' ' + reul(ny) + ' 노려요!';
+        return { side: pos[x], msg };
+      }
+    }
+    return null;
+  }
+
+  function say(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function placeBoat() {
+    const range = water.clientWidth - boatBox.offsetWidth - 16;
+    boatBox.style.transform =
+      boatSide === 'L' ? 'translateX(0)' : 'translateX(' + range + 'px)';
+  }
+
+  function render() {
+    // 초점이 캐릭터 단추에 있었다면 기억해 둔다 — appendChild로 옮기면 끊긴다
+    const focused = document.activeElement;
+    const s = skin();
+
+    scene.className = 'scene ' + s.stageClass;
+    labelL.textContent = s.bankL;
+    labelR.textContent = s.bankR;
+    bankL.setAttribute('aria-label', s.bankL);
+    bankR.setAttribute('aria-label', s.bankR);
+    vehIcon.textContent = s.veh;
+    crossBtn.textContent = s.crossLabel;
+    boatBox.classList.toggle('big', cardOn.bigBoat);
+    boatBox.setAttribute('aria-label',
+      s.river ? '배' : (s.veh === '🧺' ? '바구니' : '옮기는 자리'));
+
+    for (const id of CHARS) {
+      const b = buttons[id];
+      b.querySelector('.icon').textContent = charIcon(id, s);
+      b.querySelector('.name').textContent = charName(id, s);
+
+      const here = pos[id];
+      const box = here === 'boat' ? boatSlots : (here === 'L' ? bankL : bankR);
+      box.appendChild(b);
+      b.classList.toggle('in-boat', here === 'boat');
+
+      if (here === 'boat') {
+        b.setAttribute('aria-label',
+          charName(id, s) + ', 태웠음. 누르면 내려요.');
+      } else {
+        b.setAttribute('aria-label',
+          charName(id, s) + ', ' + (here === 'L' ? s.bankL : s.bankR) +
+          '. 누르면 태워요.');
+      }
+    }
+
+    placeBoat();
+
+    const bad = violation();
+    bankL.classList.toggle('warn', !!bad && bad.side === 'L');
+    bankR.classList.toggle('warn', !!bad && bad.side === 'R');
+
+    const allRight = CHARS.every(id => pos[id] === 'R');
+    if (bad) say(bad.msg, 'bad');
+    else if (allRight) say(s.river ? '모두 건넜어요! 🎉' : '모두 옮겼어요! 🎉', 'good');
+    else say('');
+
+    renderLegend(s);
+
+    // 키보드 사용자의 자리를 돌려준다 — 옮겨진 단추에 초점을 다시 준다
+    if (focused && focused.classList && focused.classList.contains('obj') &&
+        document.activeElement !== focused) {
+      focused.focus();
+    }
+  }
+
+  // 범례 — 이야기가 있으면 문장 두 줄, 지웠으면 빨간 금지선만 남는다.
+  // 금지를 없애면 그 줄 자체가 사라진다.
+  function renderLegend(s) {
+    legend.innerHTML = '';
+    const bans = activeBans();
+    if (!cardOn.noStory) {
+      for (const [x, y] of bans) {
+        const p = document.createElement('p');
+        p.className = 'story';
+        p.textContent = ga(s.mover) + ' 없으면 ' + neun(charName(x, s)) + ' ' +
+                        reul(charName(y, s)) + ' 먹어요.';
+        legend.appendChild(p);
+      }
+    } else if (bans.length) {
+      const box = document.createElement('div');
+      box.className = 'bans';
+      for (const [x, y] of bans) {
+        const pair = document.createElement('span');
+        pair.className = 'ban-pair';
+        pair.setAttribute('role', 'img');
+        pair.setAttribute('aria-label',
+          wa(charName(x, s)) + ' ' + neun(charName(y, s)) + ' 함께 둘 수 없음');
+        pair.innerHTML = '<span class="ic">' + charIcon(x, s) + '</span>' +
+                         '<span class="ban-line"></span>' +
+                         '<span class="ic">' + charIcon(y, s) + '</span>';
+        box.appendChild(pair);
+      }
+      legend.appendChild(box);
+    }
+  }
+
+  // ── 가장 짧은 풀이 — 너비 우선 탐색 ─────────────────────────
+  // 상태: (옮기는 이, o1, o2, o3) 각각 L(0)/R(1), 배는 항상 옮기는 이와 같은 쪽.
+  // 인코딩 m*8+o1*4+o2*2+o3. 시작 0(모두 왼쪽), 목표 15(모두 오른쪽).
+  function shortestSolution(rules) {
+    const queue = [0];
+    const dist = { 0: 0 };
+    while (queue.length) {
+      const st = queue.shift();
+      if (st === 15) return dist[st];
+      const m = (st >> 3) & 1;
+      const objs = [(st >> 2) & 1, (st >> 1) & 1, st & 1];
+
+      // 태울 수 있는 것: 같은 쪽 + (안 데려오기가 켜져 있으면) 오른쪽 제외
+      const avail = [];
+      for (let i = 0; i < 3; i++) {
+        if (objs[i] === m && !(rules.noReturn && objs[i] === 1)) avail.push(i);
+      }
+      // 정원 이하의 모든 조합 (빈 배 포함)
+      const subsets = [[]];
+      for (const i of avail) {
+        for (const base of subsets.slice()) {
+          if (base.length < rules.cap) subsets.push(base.concat(i));
+        }
+      }
+
+      for (const take of subsets) {
+        const nm = 1 - m;
+        const no = objs.slice();
+        for (const i of take) no[i] = nm;
+        // 도착한 판에서 금지 확인 — 옮기는 이 없는 쪽에 금지 쌍이 함께면 무효
+        if (rules.ban1 && no[0] === no[1] && no[0] !== nm) continue;
+        if (rules.ban2 && no[1] === no[2] && no[1] !== nm) continue;
+        const ns = (nm << 3) | (no[0] << 2) | (no[1] << 1) | no[2];
+        if (!(ns in dist)) {
+          dist[ns] = dist[st] + 1;
+          queue.push(ns);
+        }
+      }
+    }
+    return null;   // 경로 없음 — 풀 수 없음
+  }
+
+  function rulesNow() {
+    return {
+      ban1: !cardOn.noBanWG,
+      ban2: !cardOn.noBanGC,
+      cap: cardOn.bigBoat ? 2 : 1,
+      noReturn: cardOn.noReturn
+    };
+  }
+
+  // 숫자가 실제로 변할 때만 다시 그린다 — 겉 카드의 무반응을 그대로 보여주기 위해.
+  let lastSolveText = null;
+  function renderSolve() {
+    const n = shortestSolution(rulesNow());
+    const text = n === null ? '풀 수 없음' : n + '번';
+    if (text === lastSolveText) return;
+    lastSolveText = text;
+    if (n === null) {
+      solveVal.textContent = '풀 수 없음';
+      solveVal.classList.add('none');
+    } else {
+      solveVal.innerHTML = n + '<span class="solve-unit">번</span>';
+      solveVal.classList.remove('none');
+    }
+  }
+
+  // ── 카드 단추 ──────────────────────────────────────────────
+  const cardBtns = {};
+  for (const d of CARD_DEFS) {
+    const b = document.createElement('button');
+    b.className = 'card';
+    b.type = 'button';
+    b.innerHTML = '<span class="card-name">' + d.label + '</span>' +
+                  '<span class="sw" aria-hidden="true"></span>';
+    b.addEventListener('click', () => toggleCard(d.id));
+    cardBtns[d.id] = b;
+    cardsBox.appendChild(b);
+  }
+
+  function toggleCard(id) {
+    cardOn[id] = !cardOn[id];
+
+    // 자리가 줄면 이미 태운 것만 그 자리에 내려놓는다 — 판 리셋 아님
+    if (id === 'bigBoat' && !cardOn.bigBoat) {
+      while (aboardPassengers() > passengerCap() && boardOrder.length) {
+        pos[boardOrder.pop()] = boatSide;
+      }
+    }
+    // 안 데려오기가 켜질 때 오른쪽에서 태워 둔 것은 내려놓는다
+    if (id === 'noReturn' && cardOn.noReturn && boatSide === 'R') {
+      for (const cid of CHARS) {
+        if (cid !== 'mover' && pos[cid] === 'boat') pos[cid] = 'R';
+      }
+      boardOrder = [];
+    }
+
+    renderCards();
+    renderSolve();
+    render();
+  }
+
+  function renderCards() {
+    for (const d of CARD_DEFS) {
+      const on = cardOn[d.id];
+      const b = cardBtns[d.id];
+      b.classList.toggle('on', on);
+      b.setAttribute('aria-pressed', on);
+      b.setAttribute('aria-label', d.label + ' 카드, ' + (on ? '켜짐' : '꺼짐'));
+    }
+  }
+
+  crossBtn.addEventListener('click', cross);
+  document.getElementById('resetBtn').addEventListener('click', reset);
+  window.addEventListener('resize', placeBoat);
+
+  renderCards();
+  renderSolve();
+  reset();
+</script>
+
+</body>
+</html>

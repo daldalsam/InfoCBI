@@ -213,6 +213,7 @@
 | 02-data/01-digital-data | 표현 | 연속적인 것을 잘게 나눌수록 원본에 가깝지만 저장 공간이 늘어난다 |
 | 02-data/02-representation | 표현 | 같은 비트라도 약속이 다르면 다른 의미가 된다 |
 | 03-algorithm-programming/01-problem-state | 추상화 | 결과를 좌우하는 것만 선택해 상태로 정의해야 문제를 이어갈 수 있다 |
+| 03-algorithm-programming/02-abstraction | 추상화 | 규칙을 건드리지 않는 한 겉모습은 바꾸거나 버려도 같은 문제이고, 많이 버릴수록 한 풀이가 통하는 범위가 넓어진다 |
 
 **점검 질문**
 
