@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ⅲ-1-02 문제의 추상화 — 교사용</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --ink: #0f172a;
+    --dim: #64748b;
+    --accent: #2563eb;
+    --card: #ffffff;
+    --line: #e2e8f0;
+    --soft: #eff4fb;
+    --warn-bg: #fef2f2;
+    --warn-line: #fecaca;
+    --warn-ink: #991b1b;
+    --say-bg: #f0fdf4;
+    --say-ink: #166534;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    padding: 0 0 60px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+    line-height: 1.65;
+  }
+
+  a { color: var(--accent); }
+  a:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ── 머리띠 ── */
+  .topbar { background: var(--ink); color: #fff; padding: 14px 20px; }
+  .topbar .in {
+    max-width: 860px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: baseline;
+    flex-wrap: wrap; gap: 4px 16px;
+  }
+  .topbar b { font-size: 17px; letter-spacing: -0.01em; }
+  .topbar a { color: #93c5fd; text-decoration: none; font-size: 14px; }
+  .topbar a:hover { text-decoration: underline; }
+  .topbar .nav { display: flex; gap: 18px; flex-wrap: wrap; }
+
+  /* ── 문서 내 이동 ── */
+  .jump {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(247, 249, 252, .94);
+    backdrop-filter: blur(6px);
+    border-bottom: 1px solid var(--line);
+  }
+  .jump .in {
+    max-width: 860px; margin: 0 auto; padding: 9px 20px;
+    display: flex; gap: 6px 18px; flex-wrap: wrap;
+    font-size: 13.5px;
+  }
+  .jump a { color: var(--dim); text-decoration: none; }
+  .jump a:hover { color: var(--accent); }
+
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 0; }
+
+  /* ── 단원 머리 ── */
+  .unithead { margin: 0 0 16px; }
+  .unithead h1 {
+    margin: 0 0 6px;
+    font-size: 24px; letter-spacing: -0.02em; line-height: 1.3;
+  }
+  .meta {
+    display: flex; gap: 8px 12px; flex-wrap: wrap; align-items: center;
+    font-size: 14px; color: var(--dim);
+    margin-bottom: 12px;
+  }
+  .chip {
+    font-size: 12.5px; font-weight: 700;
+    padding: 3px 10px; border-radius: 999px;
+    background: #dcfce7; color: #166534;
+  }
+  .std {
+    font-size: 14.5px; color: var(--dim);
+    border-left: 3px solid var(--line);
+    padding: 2px 0 2px 12px;
+    margin: 0 0 16px;
+  }
+  .std b { color: var(--ink); font-weight: 600; }
+
+  /* ── 나침반(일반화) ── */
+  .goalbox {
+    background: var(--soft);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    padding: 14px 16px;
+    font-size: 15px;
+    margin: 0 0 10px;
+  }
+  .goalbox .lens {
+    font-size: 13px; color: var(--dim);
+    text-transform: none; letter-spacing: .02em;
+    margin: 0 0 6px;
+  }
+  .goalbox .gen { margin: 0 0 8px; font-size: 15.5px; }
+  .goalbox .warn { margin: 0; font-size: 14px; color: var(--dim); }
+
+  .applink {
+    display: inline-block;
+    margin: 4px 0 2px;
+    padding: 10px 18px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .applink:active { transform: scale(.98); }
+  @media (prefers-reduced-motion: reduce) {
+    .applink:active { transform: none; }
+    details[open] summary .arrow { transition: none; }
+  }
+
+  /* ── 접히는 설계 개요 ── */
+  details.fold {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+    margin: 22px 0;
+    overflow: hidden;
+  }
+  details.fold > summary {
+    list-style: none; cursor: pointer;
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  }
+  details.fold > summary::-webkit-details-marker { display: none; }
+  details.fold > summary .arrow {
+    color: var(--dim); font-size: 12px; transition: transform .15s;
+  }
+  details.fold[open] > summary .arrow { transform: rotate(90deg); }
+  details.fold > summary strong { font-size: 17px; letter-spacing: -0.01em; }
+  details.fold > summary .hint { color: var(--dim); font-size: 13.5px; }
+  .foldbody { padding: 2px 20px 20px; border-top: 1px solid var(--line); }
+
+  /* ── 차시 카드 ── */
+  .lesson {
+    background: var(--card);
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+    margin-bottom: 22px;
+    padding: 22px 22px 18px;
+    scroll-margin-top: 56px;
+  }
+  .lesson h2 { margin: 0 0 2px; font-size: 19px; letter-spacing: -0.01em; }
+  .lesson .sub { color: var(--dim); font-size: 14px; margin: 0 0 14px; }
+
+  h3 { margin: 20px 0 8px; font-size: 15px; color: var(--accent); }
+  .foldbody > h3:first-child { margin-top: 16px; }
+
+  p { margin: 6px 0; font-size: 15px; }
+  ul, ol { margin: 6px 0; padding-left: 22px; font-size: 15px; }
+  li { margin: 4px 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14.5px; margin: 8px 0; }
+  th, td {
+    text-align: left; padding: 9px 10px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  th { color: var(--dim); font-weight: 600; white-space: nowrap; }
+  td.min { white-space: nowrap; color: var(--dim); font-variant-numeric: tabular-nums; }
+  td.step { white-space: nowrap; font-weight: 600; }
+  td.where { white-space: nowrap; color: var(--dim); }
+  td.num { white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  .say {
+    display: block;
+    background: var(--say-bg);
+    color: var(--say-ink);
+    border-radius: 8px;
+    padding: 6px 10px;
+    margin: 6px 0 2px;
+    font-size: 14px;
+  }
+  .say::before { content: "발문 · "; font-weight: 700; }
+
+  .dont {
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-line);
+    color: var(--warn-ink);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14.5px;
+    margin: 14px 0 4px;
+  }
+  .dont b { display: block; margin-bottom: 4px; }
+  .dont ul { margin: 0; padding-left: 20px; font-size: 14.5px; }
+  .dont li { margin: 3px 0; }
+
+  /* 클래스룸 과제 안내 — 복사해서 게시하는 원문 */
+  .classroom {
+    background: #f0f9ff;
+    border: 1px solid #bae6fd;
+    color: #0c4a6e;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 14.5px;
+    margin: 14px 0 4px;
+  }
+  .classroom > b { display: block; margin-bottom: 2px; }
+  .classroom .when { color: #0369a1; font-size: 13.5px; margin: 0 0 8px; }
+  .classroom .copy {
+    background: #fff;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 6px 0;
+    color: var(--ink);
+  }
+  .classroom a { color: #0369a1; font-weight: 700; }
+
+  footer {
+    max-width: 860px; margin: 30px auto 0; padding: 0 20px;
+    font-size: 13px; color: var(--dim);
+  }
+
+  /* ── 인쇄 ── */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .topbar, .jump, .applink { display: none; }
+    .lesson, details.fold {
+      box-shadow: none; border: 1px solid #ccc;
+      break-inside: avoid; page-break-inside: avoid;
+    }
+    details.fold > summary .hint { display: none; }
+    .say { border: 1px solid #ccc; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="in">
+    <b>정보 수업 — 교사용</b>
+    <span class="nav">
+      <a href="../../index.html">← 교사용 첫 페이지</a>
+      <a href="../../../index.html">학생용 첫 페이지 열기 →</a>
+    </span>
+  </div>
+</div>
+
+<nav class="jump">
+  <div class="in">
+    <a href="#design">설계 개요</a>
+    <a href="#l1">1차시 — 벗겨보고 기록하기</a>
+    <a href="#l2">2차시 — 이름 붙이고 넓히기</a>
+  </div>
+</nav>
+
+<div class="wrap">
+
+  <div class="unithead">
+    <h1>Ⅲ-1-02 문제의 추상화</h1>
+    <div class="meta">
+      <span>2차시 · 45분 기준</span>
+      <span class="chip">앱 사용</span>
+    </div>
+    <p class="std">
+      <b>[9정03-02]</b> 문제 해결을 위한 추상화의 중요성을 이해하고, 핵심요소를
+      중심으로 알고리즘을 표현한다.
+      <br>이 기준은 두 단원이 나눠 맡습니다 — 이 단원은 앞부분
+      <b>「추상화의 중요성 이해」</b>, 뒷부분 「핵심요소 중심 표현」은 다음
+      단원(알고리즘 표현) 몫입니다. 개념적 렌즈 「추상화」는 Ⅲ-1 네 소단원이
+      함께 쓰고, 이 단원이 맡은 축은 <b>“무엇을 버려도 되는가, 버리면 안 되는
+      선은 어디인가”</b>입니다 — 앞 단원이 미뤄 둔 질문을 여기서 받습니다.
+    </p>
+  </div>
+
+  <div class="goalbox">
+    <p class="lens">개념적 렌즈 — 추상화</p>
+    <p class="gen">학생이 도달할 일반화 1: <b>규칙을 건드리지 않는 한 이름·모습·
+      이야기는 바꾸거나 버려도 같은 문제로 남으며, 많이 버릴수록 하나의 풀이가
+      통하는 문제의 범위가 넓어진다.</b></p>
+    <p class="gen">일반화 2 (보조, 전이에서): <b>무엇이 껍데기이고 무엇이
+      규칙인지는 문제에 정해져 있는 것이 아니라, 그 문제로 무엇을 하려는지
+      (목적)가 정한다.</b></p>
+    <p class="warn">이 문장들은 교사의 나침반입니다. 수업에서 <b>먼저 말하지
+      않습니다</b> — ‘추상화’, ‘핵심 요소’라는 낱말은 2차시 용어 연결 전에는
+      교사 입에서 나오지 않아야 합니다.</p>
+  </div>
+
+  <a class="applink" href="../../../03-algorithm-programming/02-abstraction/index.html">앱 열기 — 어디까지 바꿔도 될까?</a>
+
+
+  <!-- ═══════════ 설계 개요 ═══════════ -->
+  <details class="fold" id="design" open>
+    <summary>
+      <span class="arrow">▶</span>
+      <strong>설계 개요</strong>
+      <span class="hint">한 번 읽었으면 접어두고 지도안만 보셔도 됩니다</span>
+    </summary>
+    <div class="foldbody">
+
+      <h3>문제를 벗겨보는 앱이지, 퍼즐을 푸는 앱이 아닙니다</h3>
+      <p>소재는 앞 단원의 강 건너기를 그대로 이어 씁니다(재학습 비용 0).
+        학생은 퍼즐을 다시 푸는 게 아니라 <b>바꾸기 카드 9장으로 문제를 한 겹씩
+        벗기면서</b>, 판 옆의 숫자 하나 — <b>「가장 짧은 풀이: 7번」</b> — 가
+        움직이는지를 관찰합니다. 겉을 벗기는 카드는 몇 장을 켜도 숫자가 꿈쩍도
+        하지 않고, 규칙을 건드리는 카드는 켜는 순간 숫자가 튑니다.
+        <b>이 무반응이 앱의 핵심 피드백입니다</b> — 앞 단원에서 무관 카드가
+        N을 못 줄이던 것과 같은 자리입니다.</p>
+
+      <h3>앞 단원과 무엇이 다른가 — 같은 소재, 다른 질문</h3>
+      <table>
+        <tr><th></th><th>01 문제의 상태와 구조화</th><th>02 문제의 추상화</th></tr>
+        <tr><td class="step">질문</td>
+          <td>이 판이 어느 판인지 <b>정해지는가</b></td>
+          <td>이 문제를 여전히 <b>풀 수 있는가</b></td></tr>
+        <tr><td class="step">숫자</td>
+          <td>내 기록에 맞는 <b>판</b>의 수 (16 → 1)</td>
+          <td><b>문제 자체</b>의 지문 — 가장 짧은 풀이 (7)</td></tr>
+        <tr><td class="step">조작</td>
+          <td>정보를 골라 <b>담기</b> (선택하다)</td>
+          <td>문제에서 <b>벗기기</b> (켜다/끄다)</td></tr>
+        <tr><td class="step">핵심 피드백</td>
+          <td>담아도 안 줄어드는 카드</td>
+          <td>벗겨도 안 변하는 숫자</td></tr>
+      </table>
+      <p>조작 어휘도 다릅니다 — 01의 정보 카드는 「선택하다」, 02의 바꾸기
+        카드는 <b>「켜다/끄다」</b>. 두 앱의 카드가 헷갈리지 않게 학습지·수업
+        발문에서도 이 어휘를 지켜 주세요.</p>
+
+      <h3>바꾸기 카드 9장 — 무엇이 숫자를 움직이는가</h3>
+      <p>겉 카드 5장 + 규칙 카드 4장입니다. <b>앱 화면에는 종류가 표시되지
+        않고 섞여 있습니다</b> — 가르는 것이 학생의 일입니다.</p>
+      <table>
+        <tr><th>카드</th><th>켜면 판에서</th><th>숫자는</th></tr>
+        <tr><td>이름 바꾸기</td><td>농부는 옮기는 이로, 늑대·염소·양배추는
+          A·B·C로</td><td class="num">7 그대로</td></tr>
+        <tr><td>그림 바꾸기</td><td>이모지가 도형으로 — 농부 ◆,
+          늑대·염소·양배추 ▲●■</td><td class="num">7 그대로</td></tr>
+        <tr><td>이야기 지우기</td><td>“잡아먹는다” 문장 두 줄이 사라지고 빨간
+          금지선 두 개만 남음</td><td class="num">7 그대로</td></tr>
+        <tr><td>강과 배 지우기</td><td>강·배 그림과 강 어휘(기슭·건너가기)가
+          사라지고 왼 칸·오른 칸만 남음 — 등장 인물은 그대로</td>
+          <td class="num">7 그대로</td></tr>
+        <tr><td>완전히 다른 이야기</td><td>고양이·병아리·쌀, 마당↔집으로 통째
+          교체 — 주인이 하나씩 옮기고, 고양이는 병아리를, 병아리는 쌀을
+          먹는다</td><td class="num">7 그대로</td></tr>
+        <tr><td>늑대-염소 금지 없애기</td><td>금지선 하나 삭제</td>
+          <td class="num"><b>7 → 5</b></td></tr>
+        <tr><td>염소-양배추 금지 없애기</td><td>금지선 하나 삭제</td>
+          <td class="num"><b>7 → 5</b></td></tr>
+        <tr><td>배 두 자리로</td><td>배가 커져 한 번에 둘을 태움</td>
+          <td class="num"><b>7 → 3</b></td></tr>
+        <tr><td>건넌 것은 다시 안 데려오기</td><td>오른쪽에 한 번 내린 것은
+          다시 태울 수 없음 — 빈 배 왕복은 가능</td>
+          <td class="num"><b>7 → 풀 수 없음</b></td></tr>
+      </table>
+      <p>미리 눌러보면 좋은 값들: 카드 0장 <b>7</b> · 겉 카드는 다섯 장을 전부
+        켜도 <b>7 그대로</b>(끝까지 가면 판에는 칸 둘, ◆ 하나, 기호 셋,
+        금지선 둘만 남습니다) · 규칙 카드는 각각 <b>5 / 5 / 3 / 풀 수 없음</b> ·
+        「배 두 자리로」+「건넌 것은 다시 안 데려오기」를 같이 켜면 <b>다시
+        3</b>(부서졌던 문제가 되살아납니다 — 버그가 아니라 규칙끼리도 얽힌다는
+        심화 거리) · 9장 전부 <b>3</b>.</p>
+      <p><b>「건넌 것은 다시 안 데려오기」가 문제를 부수는 이유</b>(교사용
+        검산): 첫 배는 염소일 수밖에 없고(다른 걸 태우면 남는 둘이 충돌),
+        둘째 대상을 건넌 뒤 옮기는 이가 혼자 돌아오는 순간 오른쪽에서 반드시
+        충돌합니다 — <b>염소를 되태우는 그 이상해 보이는 수가 이 문제의
+        뼈대</b>였던 겁니다. 많은 학생이 ‘그대로’에 거는 카드라 반전이 큽니다.</p>
+      <p>알아두실 것 — 「완전히 다른 이야기」를 켜면 카드 다섯 장의 이름에 새
+        이야기 이름이 <b>괄호로 병기</b>됩니다(예: 늑대-염소(고양이-병아리)
+        금지 없애기). 학습지 예상 표의 원래 이름이 화면에 항상 남아 있게 하기
+        위한 병기입니다 — 학습지에는 원래 이야기의 카드 이름만 씁니다.</p>
+
+      <h3>탐구 질문</h3>
+      <table>
+        <tr><th>사실적</th><td>늑대·염소·양배추를 A·B·C로 바꾸면 가장 짧은
+          풀이는 몇 번인가? 숫자 7을 지킨 채 켤 수 있는 카드는 모두 몇
+          장인가?</td></tr>
+        <tr><th>개념적</th><td>켜도 숫자가 그대로인 카드들과 숫자를 움직인
+          카드들은 무엇이 다른가? 문제를 그 문제이게 하는 것은 무엇인가?</td></tr>
+        <tr><th>논쟁적</th><td>다 벗겨낸 기호 문제와 원래 이야기 문제 중 어느
+          쪽이 ‘진짜’ 문제인가? 버릴 수 있는 것은 다 버리는 쪽이 항상
+          좋은가?</td></tr>
+      </table>
+      <p>「어느 풀이가 더 좋은가」류의 비교 질문은 여기서 다루지 않습니다 —
+        그것은 알고리즘 분석 단원(Ⅲ-1-04)의 축입니다. 이 단원은 “같은
+        문제인가, 다른 문제가 되었는가”까지만 갑니다.</p>
+
+      <h3>앱이 담당하는 곳은 조사하기 한 단계입니다</h3>
+      <table>
+        <tr><th>관계 맺기</th><td class="where">수업</td>
+          <td>“안 적어도 되는 게 있었지. 그럼 아예 지워버려도 될까?” —
+            구두 발문 4분(앞 단원의 전이 예고를 그대로 회수). 패들렛을 쓰지
+            않습니다</td></tr>
+        <tr><th>조사하기</th><td class="where">앱</td>
+          <td>켜기 전 예상 → 켜서 확인 → 경계 찾기(몇 장까지 7인가) →
+            다른 이야기에서 풀이 재사용 확인</td></tr>
+        <tr><th>패턴 말하기</th><td class="where">클래스룸 → 패들렛</td>
+          <td>1차시는 학습지에 개인 기록(예상/실제 표), 2차시에 모둠 문장을
+            패들렛(셸프)에</td></tr>
+        <tr><th>정리</th><td class="where">수업</td>
+          <td>패들렛 문장 → 일반화 1로 다듬기 → <b>그다음에</b> 교과서 용어
+            (추상화, 핵심 요소)를 학생 표현에 붙이기</td></tr>
+        <tr><th>전이</th><td class="where">수업</td>
+          <td>수학 문장제(사과든 연필이든 3+2) → 목적 바꾸기(일반화 2) →
+            다음 단원 예고</td></tr>
+      </table>
+      <p><b>도구는 차시당 둘까지</b> — 1차시 = 앱 + 클래스룸, 2차시 = 패들렛 +
+        클래스룸. 앞 단원과 같은 배치, 같은 이유입니다.</p>
+
+      <h3>게시 순서 주의 — 이 앱은 01이 숨긴 숫자를 보여줍니다</h3>
+      <p>「가장 짧은 풀이: 7번」은 <b>01 앱이 일부러 숨긴 숫자</b>입니다(01은
+        빨리 풀라는 신호를 주지 않으려고 최단 횟수를 보여주지 않습니다).
+        01 수업이 끝난 반에는 문제없지만, <b>01을 아직 하지 않은 반에 이 앱
+        링크를 먼저 주지 마세요.</b> 클래스룸 링크 안내 순서로 통제합니다.</p>
+
+      <h3>클래스룸 과제 질문</h3>
+      <p>게시용 원문(제목·본문·게시 시점)은 각 차시 지도안 끝의
+        <b>「클래스룸 과제」</b> 상자에 있습니다. 질문 1~5는 1차시,
+        질문 6은 2차시 상자입니다. <b>질문 6을 먼저 게시하면 ‘핵심 요소’라는
+        답을 교사가 준 셈이 됩니다.</b></p>
+
+    </div>
+  </details>
+
+
+  <!-- ═══════════ 1차시 ═══════════ -->
+  <div class="lesson" id="l1">
+    <h2>1차시 — 벗겨보고 기록하기</h2>
+    <p class="sub">관계 맺기 → 숫자 7 잡기 → 카드 실험 → 다른 이야기 ·
+      준비물: 학생 기기, 앱 주소, 클래스룸 과제(질문 1~5) 미리 게시,
+      1차시 학습지. <b>이 차시에는 패들렛이 없습니다</b> — 기록은
+      학습지(클래스룸)에만. 앞 단원과 달리 퍼즐 풀기 단계가 없습니다 —
+      학생이 문제를 이미 알아서, 그 시간이 카드 실험으로 넘어옵니다.</p>
+
+    <h3>진행 흐름</h3>
+    <table>
+      <tr><th style="width:52px">분</th><th style="width:92px">단계</th><th>교사가 하는 일</th></tr>
+      <tr>
+        <td class="min">0–4</td><td class="step">관계 맺기</td>
+        <td>구두 발문으로 짧게 — 앞 단원의 끝 질문을 그대로 회수한다.
+          <span class="say">“지난 시간에 넉 장이면 판을 정확히 전할 수 있었지.
+            안 적어도 되는 게 있었어. 그럼 한 발 더 — 문제에서 아예
+            지워버려도 될까? 늑대가 꼭 늑대여야 할까?”</span>
+          두세 명 답을 듣고 바로 넘어간다. 판서·정리하지 말 것.</td>
+      </tr>
+      <tr>
+        <td class="min">4–6</td><td class="step">앱 접속</td>
+        <td>클래스룸에 모아둔 앱 주소로 접속. 화면 설명은 하지 않는다 —
+          판, 큰 숫자 하나, 아래 카드 9장만 눈으로 확인시킨다.
+          <b>학습지를 이때 배부한다</b> — 다음 단계에서 바로
+          「내 풀이 메모」를 쓰기 때문이다.</td>
+      </tr>
+      <tr>
+        <td class="min">6–13</td><td class="step">숫자 7 잡기</td>
+        <td>숫자의 뜻부터 몸으로 잡는다.
+          <span class="say">“가장 짧은 풀이가 7번이래. 정말 7번보다 짧게는
+            안 되나? 직접 도전해 봐.”</span>
+          실패 경험이 숫자를 신뢰하게 만든다. 성공한 학생은 자기 풀이 순서를
+          학습지 <b>「내 풀이 메모」</b>에 자유 형식으로 남기게 한다 —
+          나만 알아보면 되는 수준이면 충분하다고 안내(이 메모는 뒤의
+          「완전히 다른 이야기」 단계와 다음 단원 도입에서 다시 쓴다).
+          퍼즐은 앞 단원에서 풀어봤으므로 여기서 오래 끌지 않는다.</td>
+      </tr>
+      <tr>
+        <td class="min">13–31</td><td class="step">카드 실험</td>
+        <td>이 차시의 몸통. 규칙은 하나 —
+          <span class="say">“누르기 전에 먼저 걸어. 이 카드는 숫자를
+            움직일까, 그대로일까? 학습지에 예상과 <b>까닭 한 줄</b>을 적고
+            나서 켜.”</span>
+          9장 전부, 예상 → 확인 → 실제 기록(장당 2분 꼴). 카드 실험은
+          탐색이 아니라 관찰이라 <b>예상 없이 누르면 5분에 끝나버린다</b> —
+          예상+까닭이 속도를 받아내는 장치다. 다 지난 학생에게 경계 찾기:
+          <span class="say">“숫자 7을 지킨 채 몇 장까지 켤 수 있어?
+            끝까지 가면 판에 뭐가 남아?”</span>
+          그래도 남는 학생은 학습지 <b>「열 번째 카드 발명하기」</b>로 —
+          숫자가 안 움직일 것 같은데 움직이는 카드(또는 반대)를 지어내게
+          한다. 다음 차시 모둠 공유의 첫 순서가 된다.
+          순회하며 개별 발문:
+          <span class="say">“이야기를 지웠는데 왜 숫자가 그대로일까?”</span>
+          <span class="say">“무언가를 없앴을 뿐인데 왜 문제가 통째로
+            사라졌을까?”</span></td>
+      </tr>
+      <tr>
+        <td class="min">31–39</td><td class="step">다른 이야기</td>
+        <td>모두 함께 「완전히 다른 이야기」를 켜게 한다.
+          <span class="say">“고양이네 이야기로 통째로 바뀌었는데 숫자는
+            그대로 7이야. 그럼 「내 풀이 메모」의 순서가 여기서도 통할까?
+            판을 눌러서 확인해 봐.”</span>
+          풀이 메모가 없는 학생의 대체 과제:
+          <span class="say">“고양이·병아리·쌀에서 <b>염소 노릇</b>을 하는 건
+            누구야? 짝의 메모로 확인해 봐.”</span></td>
+      </tr>
+      <tr>
+        <td class="min">39–45</td><td class="step">마무리</td>
+        <td>학습지의 「(다음 시간)」 칸을 안내하고 과제 질문 1~5를 안내한다.
+          <span class="say">“숫자를 못 움직인 카드들과 움직인 카드들 —
+            오늘은 이름을 붙이지 않을게. 다음 시간에 여러분 기록을 모아서
+            정체를 밝혀보자.”</span>
+          — 궁금증을 남긴 채 끝내는 것이 의도다.</td>
+      </tr>
+    </table>
+
+    <h3>예상 반응과 대응</h3>
+    <ul>
+      <li>“카드를 켰는데 숫자가 안 변해요. 버그 아니에요?” →
+        <span class="say">“그 카드가 바꾼 건 뭐고, 안 바꾼 건 뭐야?”</span>
+        — 겉 카드의 무반응이 이 앱의 핵심 피드백이다. 버그가 아니라고
+        설명해버리지 말고 질문으로 되돌려준다.</li>
+      <li>“「건넌 것은 다시 안 데려오기」를 켰더니 풀 수 없음이 됐어요!” →
+        <span class="say">“직접 풀어봐 — 어디서 막혀?”</span>
+        판 조작이 확인 통로다. 염소를 되태우는 수가 막히는 걸 몸으로
+        발견하게 둔다.</li>
+      <li>“「배 두 자리로」랑 같이 켰더니 다시 3이 됐어요!” → 버그가 아니라
+        의도된 심화 거리다.
+        <span class="say">“오, 부서졌던 문제가 되살아났네. 왜 다시 풀리는지
+          순서를 보여줄래?”</span></li>
+      <li>예상이 빗나가서 억울해하는 학생 → 그 카드가 이 수업의 연료다.
+        <span class="say">“어느 쪽에 걸었었어? 왜 그렇게 예상했어? 그 까닭을
+          꼭 남겨 둬 — 다음 시간 모둠 이야기의 재료야.”</span>
+        (빗나가기 쉬운 카드가 양쪽에 하나씩 있다 — 「이야기 지우기」를
+        ‘변한다’에, 「건넌 것은 다시 안 데려오기」를 ‘그대로’에 거는
+        학생이 많다.)</li>
+      <li>일찍 끝낸 학생 → 경계 찾기(몇 장까지 7인가) → 열 번째 카드
+        발명 순서로 흡수한다.</li>
+    </ul>
+
+    <div class="dont">
+      <b>이 차시에서 하지 말 것</b>
+      <ul>
+        <li>‘추상화’, ‘핵심 요소’를 교사가 먼저 말하기 — 용어는 2차시
+          정리에서 학생 표현에 이름을 붙이며 처음 등장한다</li>
+        <li>“이름을 바꿔도 같은 문제야”라고 판정을 대신 말해주기 — 앱도
+          판정 문구 없이 숫자만 보여준다. 같은 문제인지 판단하는 것이
+          학생 몫이다</li>
+        <li>겉 카드의 무반응을 설명으로 메우기 — 질문으로만 되돌려줄 것</li>
+        <li>예상 없이 카드부터 누르게 두기 — 켜기 전 예상+까닭이 없으면
+          카드 실험이 5분에 끝난다</li>
+        <li>최단 풀이의 경로(순서)를 알려주기 — 앱도 숫자만 주고 경로는
+          보여주지 않는다. 풀이는 학생이 직접 찾는다</li>
+      </ul>
+    </div>
+
+    <div class="classroom">
+      <b>클래스룸 과제</b>
+      <p class="when">1차시 시작 전 예약 게시 — 아래 제목·본문을 그대로 복사해
+        과제로 만듭니다. [앱 주소]는 실제 주소로 바꿉니다.</p>
+      <div class="copy">
+        <p><b>제목:</b> [알고리즘 02-1차시] 어디까지 바꿔도 될까? — 발견 기록</p>
+        <p>오늘 수업에서 조작한 앱을 근거로 답합니다. 앱: [앱 주소]</p>
+        <p>예상과 숫자는 학습지의 표에 이미 적었습니다. 여기서는 그 숫자가
+          왜 그렇게 나왔는지, 여러분의 생각을 쓰세요. 정답이 있는 질문이
+          아닙니다.</p>
+        <ol>
+          <li>이름을 A·B·C로 바꾸고 그림을 도형으로 바꿨을 때, 「가장 짧은
+            풀이」 숫자는 어떻게 되었나요?</li>
+          <li>숫자 7을 지킨 채 몇 장까지 켤 수 있었나요? 숫자를 처음으로
+            움직인 카드는 무엇이었나요?</li>
+          <li>「늑대-염소 금지 없애기」를 켰더니 7이 5가 되었습니다. 문제가
+            쉬워진 걸까요, 다른 문제가 된 걸까요? 그렇게 생각한 까닭은
+            무엇인가요?</li>
+          <li>「건넌 것은 다시 안 데려오기」를 켰더니 「풀 수 없음」이
+            되었습니다. 무언가를 없앴을 뿐인데 왜 문제가 통째로 사라졌을까요?
+            염소를 다시 데려오는 수는 왜 필요했을까요?</li>
+          <li>「완전히 다른 이야기」를 켜도 숫자는 7 그대로였습니다.
+            「내 풀이 메모」의 순서가 고양이·병아리·쌀에서도 통했나요?
+            왜 그럴까요?</li>
+        </ol>
+      </div>
+      <p><b>1차시 학습지는 준비 중입니다</b> — 만들면 이 자리에 내려받기
+        링크가 붙습니다(파일 이름 worksheet-03-02-abstraction-lesson1.docx).
+        만들 때 지킬 것: 예상 표는 카드 9장을 <b>무작위 순서</b>로,
+        <b>원래 이야기의 카드 이름</b>으로 싣는다(겉/규칙으로 묶거나 분류
+        열을 미리 만들면 서식이 답을 알려준다). 「내 풀이 메모」 칸은 자유
+        형식 빈 줄만 — 단계 기록표 서식은 다음 단원 것이다. 그 밖의 구성:
+        열 번째 카드 발명 · 질문 1~5(해석) · (다음 시간) 칸.
+        이 학습지에는 ‘추상화’, ‘핵심 요소’를 쓰지 않는다.</p>
+    </div>
+  </div>
+
+
+  <!-- ═══════════ 2차시 ═══════════ -->
+  <div class="lesson" id="l2">
+    <h2>2차시 — 이름 붙이고 넓히기</h2>
+    <p class="sub">모둠 공유 → 일반화 → 용어 연결 → 전이 · 준비물:
+      1차시 학습지 기록, 패들렛 1개(셸프, 아래 제작 가이드), 교과서,
+      클래스룸 과제(질문 6) 준비만 — <b>게시는 용어 연결 뒤</b>.</p>
+
+    <h3>진행 흐름</h3>
+    <table>
+      <tr><th style="width:52px">분</th><th style="width:92px">단계</th><th>교사가 하는 일</th></tr>
+      <tr>
+        <td class="min">0–10</td><td class="step">모둠 공유</td>
+        <td><b>열 번째 발명 카드 맞히기부터</b> — 만든 학생이 모둠에 카드를
+          내고, 친구들이 “숫자가 움직일까?”를 먼저 예상한 뒤 함께 따져본다.
+          이어서 예상이 빗나간 카드 비교(1차시 학습지의 「(다음 시간)」 칸에
+          기록). 마지막으로
+          <span class="say">“숫자를 못 움직인 카드들의 공통점, 움직인
+            카드들의 공통점을 모둠의 한 문장으로 만들어봐.”</span>
+          모둠 문장을 패들렛의 모둠 칼럼에 올리게 한다(실명 대신 모둠
+          이름).</td>
+      </tr>
+      <tr>
+        <td class="min">10–22</td><td class="step">일반화 다듬기</td>
+        <td><b>이 12분이 이 단원의 성패입니다. 밀리면 전이를 줄이고 이 시간은
+          지킵니다.</b> 패들렛을 프로젝터로 띄워 모둠 문장들의 공통 구조를
+          찾아 학급의 문장으로 다듬는다. 학생이 쓴 단어를 최대한 남기고,
+          빠진 쪽만 발문으로 끌어낸다. 대개 “겉은 바꿔도 된다” 쪽은 다 있고
+          “많이 버릴수록 어떻게 되나” 쪽이 빈다:
+          <span class="say">“고양이 이야기에서도 네 풀이가 그대로 통했지.
+            많이 벗겨낼수록 네 풀이가 통하는 문제는 많아질까, 적어질까?”</span>
+          완성된 학급 문장은 새 게시물로 올려 <b>고정</b>해 둔다 — 다음
+          단원에서 그대로 다시 띄운다.</td>
+      </tr>
+      <tr>
+        <td class="min">22–30</td><td class="step">용어 연결</td>
+        <td>여기부터 짧은 강의가 허용되는 구간. 교과서의 이 단원 부분을 펴고,
+          학급 문장 위에 용어를 이름표처럼 얹는다 —
+          <span class="say">“너희가 ‘숫자를 못 움직이는 것’이라 부른 걸
+            교과서는 <b>추상화</b>에서 버리는 것들이라 하고, 마지막까지 남은
+            것들(옮기는 이, 대상 셋, 금지 둘, 한 번에 하나)을
+            <b>핵심 요소</b>라 불러.”</span>
+          발견은 이미 했고 오늘은 이름만 배우는 것임을 분명히 한다.</td>
+      </tr>
+      <tr>
+        <td class="min">30–40</td><td class="step">전이</td>
+        <td>수학 문장제로 시작(3분):
+          <span class="say">“사과 3개에 2개를 더하든 연필 3자루에 2자루를
+            더하든 식은 3+2야. 식이 바로 ‘다 벗긴 문제’야.”</span>
+          이어 목적 바꾸기(4분) — 일반화 2로 가는 다리:
+          <span class="say">“그런데 만약 ‘최단 기록 대회’ 중계라면? 지난
+            단원에서 아무 쓸모 없던 「걸린 시간」이 갑자기 핵심이 되지.
+            무엇이 껍데기인지는 누가 정하는 걸까?”</span>
+          다음 단원 예고(1분):
+          <span class="say">“남은 알맹이로, 푸는 순서를 친구가 그대로
+            실행하게 적으려면 어떻게 써야 할까? — 다음 시간에 그 얘기를
+            하자.”</span>
+          클래스룸 과제(질문 6)를 이 자리에서 게시하고 안내한다(2분).</td>
+      </tr>
+      <tr>
+        <td class="min">40–45</td><td class="step">여유</td>
+        <td>밀린 단계 흡수용. 안 밀렸으면 학급 문장을 소리 내어 같이 읽고,
+          질문 6 작성을 시작하게 한다.</td>
+      </tr>
+    </table>
+
+    <h3>예상 반응과 대응</h3>
+    <ul>
+      <li>모둠 문장이 강 건너기에 갇힘(“늑대를 A로 바꿔도 된다”) →
+        <span class="say">“수학 문장제에도 통하는 문장으로 넓혀볼까?”</span></li>
+      <li>“다 벗긴 기호 문제랑 원래 이야기 중에 뭐가 진짜예요?” →
+        논쟁적 질문이므로 정답을 주지 않는다.
+        <span class="say">“양쪽 다 근거를 대볼래? 컴퓨터한테는 어느 쪽이면
+          충분할까? 사람한테는?”</span></li>
+      <li>‘추상화’라는 말을 이미 아는 학생이 먼저 말함 → “그 말 기억해두자”
+        라고만 받고 일반화 다듬기를 계속한다. 용어 연결 단계에서 그 학생에게
+        공을 돌려준다.</li>
+      <li>시간이 남는 반 → 확장 토론(교사 재량): “선교사와 식인종도 강
+        건너기니까 같은 문제일까?” — 벗겨 보면 뼈대가 다르다(등장 6, 배
+        2자리, 금지가 쌍이 아니라 수의 비교, 최단 11번 vs 7번).
+        <b>벗겨보면 같은 문제인지 판별할 수 있다</b>는 것 자체가 추상화의
+        쓸모라는 이야기로 닫는다. 앱에는 없는 내용이다.</li>
+    </ul>
+
+    <div class="dont">
+      <b>이 차시에서 하지 말 것</b>
+      <ul>
+        <li>클래스룸 과제 질문 6을 용어 연결 전에 게시하기 — ‘핵심 요소’라는
+          답을 교사가 준 셈이 된다</li>
+        <li>용어 연결을 일반화 다듬기보다 먼저 하기 — 순서가 바뀌면 탐구가
+          용어 대입 연습이 된다</li>
+        <li>“어느 풀이가 더 좋은가”로 넘어가기 — 알고리즘 분석 단원(Ⅲ-1-04)의
+          축이다. 여기서는 “같은 문제인가”까지만</li>
+        <li>일반화 다듬기 12분을 자르기 — 밀리면 전이를 줄여 과제로 돌린다.
+          이 시간이 잘리면 교사가 개념을 불러주게 되고 강의식과 결과가
+          같아진다</li>
+      </ul>
+    </div>
+
+    <div class="classroom">
+      <b>클래스룸 과제</b>
+      <p class="when">2차시 용어 연결이 끝난 뒤(전이 단계에서) 게시 —
+        미리 게시하지 않습니다.</p>
+      <div class="copy">
+        <p><b>제목:</b> [알고리즘 02-2차시] 노선도는 무엇을 버리고 무엇을
+          남겼을까?</p>
+        <p>오늘 수업에서, 마지막까지 남은 것들(옮기는 이, 대상 셋, 금지 둘,
+          한 번에 하나)을 ‘핵심 요소’라고 부른다는 것을 배웠습니다.</p>
+        <ol start="6">
+          <li>버스·지하철 노선도가 <b>버린 것</b>과 <b>남긴 것</b>을 두
+            가지씩 찾고, 무엇이 그 선을 정했는지 쓰세요.</li>
+        </ol>
+        <p>수업에서 만든 우리 반의 문장을 이어 써도 좋습니다.</p>
+      </div>
+      <p><b>2차시 학습지는 만들지 않을 수 있습니다</b> — 이 차시의 기록은
+        1차시 학습지의 「(다음 시간)」 칸(모둠 공유)과 패들렛(모둠·학급
+        문장), 과제 질문 6이 나눠 맡습니다. 학습지가 필요해지면 이 자리에
+        내려받기 링크가 붙습니다(파일 이름
+        worksheet-03-02-abstraction-lesson2.docx).</p>
+    </div>
+
+    <div class="classroom">
+      <b>패들렛 제작 가이드</b>
+      <p class="when">모둠 문장 수집·다듬기용 — 이 단원의 패들렛은 이것
+        하나입니다(1차시에는 쓰지 않습니다).</p>
+      <ul>
+        <li>새 패들렛 → <b>셸프</b> 서식. 칼럼을 모둠 수만큼 만들고 칼럼
+          이름은 모둠 이름으로</li>
+        <li>설정: 작성자 이름 표시 끄기, 댓글·반응 끄기, 승인 없이 게시.
+          게시물에는 실명 대신 모둠 이름을 쓰게 안내</li>
+        <li>공유: “링크가 있는 사람은 작성 가능”으로 두고 링크를 클래스룸에
+          게시</li>
+        <li>다듬기 진행: 재료가 되는 게시물은 <b>게시물 색상</b>으로 표시하고,
+          완성된 학급 문장은 새 게시물로 올려 <b>고정</b> — 다음 단원에서
+          다시 띄웁니다</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  이 페이지는 비밀번호가 없어 주소를 아는 사람은 누구나 볼 수 있습니다.
+  원본은 <code>03-algorithm-programming/02-abstraction/lesson.md</code>이며
+  이 페이지는 사본입니다 — 설계를 고칠 때는 둘을 함께 고칩니다.
+</footer>
+
+</body>
+</html>
