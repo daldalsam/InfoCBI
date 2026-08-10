@@ -275,7 +275,7 @@
   .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .card:active { transform: translateY(1px); }
 
-  /* 미리보기 — 켠 카드만으로 만들 수 있는 판들. 친구의 눈에 보이는 화면 */
+  /* 미리보기 — 선택한 카드만으로 만들 수 있는 판들. 친구의 눈에 보이는 화면 */
   .pv-caption { margin: 14px 0 6px; font-size: 13px; color: var(--dim); }
   .pv-grid {
     display: grid;
@@ -386,12 +386,12 @@
 
 <section class="panel">
   <h2>친구가 똑같은 판을 만들 수 있게 알려 주자</h2>
-  <p class="cards-hint">켠 카드의 내용만 친구에게 전해집니다. 몇 장이면 될까요?</p>
+  <p class="cards-hint">선택한 카드의 내용만 친구에게 전해집니다. 몇 장이면 될까요?</p>
   <div class="ncount" aria-live="polite">
     <span>적어둔 것만으로 만들 수 있는 판</span>
     <strong id="nVal">16</strong><span>가지</span>
     <span class="note" id="nNote"></span>
-    <span class="mcount">켠 카드 <b id="mVal">0</b>장</span>
+    <span class="mcount">선택한 카드 <b id="mVal">0</b>장</span>
   </div>
   <div class="cards" id="cardsBox"></div>
   <p class="pv-caption" id="pvCaption"></p>
@@ -545,7 +545,7 @@
     else if (allRight) say('모두 건넜어요! 🎉', 'good');
     else say('');
 
-    renderCards();   // 판이 바뀌면 켜진 카드의 내용과 N도 따라 바뀐다
+    renderCards();   // 판이 바뀌면 선택한 카드의 내용과 N도 따라 바뀐다
 
     // 키보드 사용자의 자리를 돌려준다 — 옮겨진 단추에 초점을 다시 준다
     if (focused && focused.classList && focused.classList.contains('obj') &&
@@ -605,7 +605,7 @@
     return s < 60 ? s + '초' : Math.floor(s / 60) + '분 ' + (s % 60) + '초';
   }
 
-  // 켜진 카드가 친구에게 전하는 내용.
+  // 선택한 카드가 친구에게 전하는 내용.
   function cardValue(d) {
     if (d.type === 'pos') return SIDE_KO[effPos(d.id)];
     if (d.type === 'boat') return SIDE_KO[boatSide];
@@ -615,7 +615,7 @@
     return '초록';                        // 배의 색깔
   }
 
-  // 켠 카드와 맞아떨어지는 판을 16가지 전부에서 골라낸다.
+  // 선택한 카드와 맞아떨어지는 판을 16가지 전부에서 골라낸다.
   // 배는 언제나 농부와 같은 쪽(농부만 노를 젓는다)이라
   // 「배의 위치」는 농부 칸을 정하는 것과 같다 — 그래서 중복 카드다.
   // 무관 카드는 어떤 판도 걸러내지 못한다 — 이 무반응이 앱의 핵심 피드백.
@@ -647,7 +647,7 @@
       const v = on ? cardValue(d) : '';
       b.querySelector('.card-value').textContent = v;
       b.setAttribute('aria-label',
-        d.label + ' 카드, ' + (on ? '켜짐 — ' + v : '꺼짐'));
+        d.label + ' 카드, ' + (on ? '선택함 — ' + v : '선택 안 함'));
     }
     const boards = matchingBoards();
     const n = boards.length;
@@ -704,7 +704,7 @@
     for (const b of boards) pvGrid.appendChild(miniEl(b));
   }
 
-  // 걸린 시간 카드가 켜져 있으면 1초마다 값만 갱신 — N은 시간과 무관하다.
+  // 걸린 시간 카드가 선택돼 있으면 1초마다 값만 갱신 — N은 시간과 무관하다.
   setInterval(() => {
     if (cardOn.time) {
       cardBtns.time.querySelector('.card-value').textContent =
