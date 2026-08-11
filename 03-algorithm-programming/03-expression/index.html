@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>누가 해도 똑같을까?</title>
+<style>
+  :root {
+    --bg: #f7f9fc;
+    --ink: #0f172a;
+    --dim: #64748b;
+    --accent: #2563eb;
+    --card: #ffffff;
+    --line: #e2e8f0;
+    --land: #eef4e8;
+    --land-line: #d3e2c6;
+    --water: #d5eaf8;
+    --water-line: #aed4ec;
+    --warn: #dc2626;
+    --warn-bg: #fee2e2;
+    --split: #b45309;       /* 갈라짐 테두리 — 흰 바탕 대비 3:1 이상 */
+    --split-ink: #92400e;   /* 갈라짐 글자 — 흰 바탕 대비 4.5:1 이상 */
+    --obj: 64px;            /* 큰 판의 캐릭터 크기 — 좁은 화면에서 줄어든다 */
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 16px 18px 28px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                 "Malgun Gothic", "맑은 고딕", sans-serif;
+  }
+
+  h1 {
+    margin: 0 0 2px;
+    font-size: 19px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .hint { margin: 0 0 16px; font-size: 14px; color: var(--dim); }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px;
+    max-width: 640px;
+  }
+  .panel + .panel { margin-top: 12px; }
+  h2 { margin: 0 0 2px; font-size: 15px; font-weight: 700; }
+  .sub { margin: 0 0 10px; font-size: 13px; color: var(--dim); }
+
+  /* 보조기기용 안내 — 눈에는 보이지 않는다 */
+  .visually-hidden {
+    position: absolute;
+    width: 1px; height: 1px;
+    margin: -1px; padding: 0; border: 0;
+    clip: rect(0 0 0 0);
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  /* ── 큰 판 — 표시 전용. 자취의 작은 판을 크게 보는 자리 ── */
+  .viewcap {
+    margin: 0 0 10px;
+    font-size: 13.5px;
+    color: var(--dim);
+  }
+  .viewcap b { color: var(--ink); font-size: 14.5px; }
+
+  .scene {
+    display: grid;
+    grid-template-columns: 1fr 150px 1fr;
+    gap: 8px;
+    align-items: stretch;
+    max-width: 560px;
+  }
+  .bank {
+    background: var(--land);
+    border: 2px solid var(--land-line);
+    border-radius: 10px;
+    padding: 8px 4px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: flex-start;
+    align-content: flex-start;
+    justify-content: center;
+    min-height: 130px;
+  }
+  .bank.warn { border-color: var(--warn); background: var(--warn-bg); }
+  .bank-label {
+    width: 100%;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #55657a;   /* 연두 배경 위에서도 대비 4.5:1 이상 */
+  }
+  .water {
+    background: var(--water);
+    border: 2px solid var(--water-line);
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+  }
+  .water.dockL { justify-content: flex-start; }
+  .water.dockR { justify-content: flex-end; }
+  .boat-icon { font-size: 30px; line-height: 1; }
+
+  /* 캐릭터 — 01의 단추 모양 그대로, 다만 여기서는 누를 수 없는 그림 */
+  .obj {
+    width: var(--obj);
+    height: var(--obj);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--card);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+  }
+  .obj .icon { font-size: calc(var(--obj) * 0.42); line-height: 1; }
+  .obj .name { font-size: 12px; font-weight: 600; color: var(--dim); }
+
+  /* ── 실행 자취 — 로봇 두 줄이 한 몸으로 옆으로 스크롤된다 ── */
+  .rows { overflow-x: auto; padding-bottom: 4px; }
+  .trow {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    width: max-content;
+    padding: 6px 2px;
+  }
+  .trow + .trow { border-top: 1px dashed var(--line); }
+  .rlabel {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    align-self: center;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 6px 8px;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* 명령 하나가 만든 판들의 묶음 — 위에 카드 이름 */
+  .grp {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg);
+    padding: 4px 6px 6px;
+  }
+  .grp .gname {
+    margin: 0 0 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dim);
+    white-space: nowrap;
+  }
+  .grp .gcells { display: flex; gap: 6px; }
+
+  /* 자취 칸 — 누르면 위의 큰 판으로 크게 본다 */
+  .tcell {
+    border: 0;
+    background: none;
+    padding: 0;
+    width: 118px;   /* 한쪽에 넷(2+2)이 서도 아이콘 묶음(36px)이 잘리지 않는 폭 */
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .tcell .cno {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--dim);
+    text-align: center;
+    min-height: 14px;
+  }
+  .tcell:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
+  .tcell.sel .mini { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent); }
+  /* 두 자취가 처음 달라진 칸 */
+  .tcell.split { outline: 3px solid var(--split); outline-offset: 2px; border-radius: 8px; }
+  .tcell.split:focus-visible { outline-color: var(--accent); }
+  .tcell.split .cno { color: var(--split-ink); }
+
+  /* 실행할 수 없어 멈춘 칸 */
+  .stopc {
+    width: 64px;
+    min-height: 62px;
+    border: 1.5px dashed var(--line);
+    border-radius: 8px;
+    background: #f1f5f9;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+  }
+  .stopc .ic { font-size: 20px; line-height: 1; }
+  .stopc .cno { font-size: 11px; font-weight: 600; color: var(--ink); }
+  .grp .gcells .stopc.split { outline: 3px solid var(--split); outline-offset: 2px; }
+
+  /* 자취 끝의 목표 판 — 점선으로 갈라 두기만 한다 */
+  .goalcell {
+    margin-left: 14px;
+    position: relative;
+  }
+  .goalcell::before {
+    content: '';
+    position: absolute;
+    left: -9px;
+    top: 2px;
+    bottom: 2px;
+    border-left: 2px dashed var(--line);
+  }
+
+  /* 작은 판 — 01의 미니 판 그대로 */
+  .mini {
+    display: grid;
+    grid-template-columns: 1fr 36px 1fr;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--land);
+    width: 100%;
+  }
+  .mini.bad { border-color: var(--warn); box-shadow: 0 0 0 1px var(--warn); }
+  .mini-water {
+    background: var(--water);
+    display: flex;
+    align-items: center;
+    font-size: 13px;
+    line-height: 1;
+    padding: 0 2px;
+  }
+  .mini-water.dockL { justify-content: flex-start; }
+  .mini-water.dockR { justify-content: flex-end; }
+  .mini-side {
+    min-height: 46px;
+    padding: 4px 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .mini-side.warnside { background: var(--warn-bg); }
+  .mini-side .pack {
+    width: 36px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1px 2px;
+  }
+  .mini-side .pack span {
+    width: 16px;
+    font-size: 14px;
+    line-height: 1.15;
+    display: inline-flex;
+    justify-content: center;
+  }
+
+  /* ── 명령 줄 — 빈 칸 10개 ── */
+  .linehead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .clear {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--card);
+    color: var(--dim);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    padding: 6px 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .clear:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .slots {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    max-width: 560px;
+  }
+  .slot {
+    position: relative;
+    min-height: 54px;
+    border: 1.5px dashed #cbd5e1;
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.25;
+    padding: 14px 6px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .slot .sno {
+    position: absolute;
+    top: 3px;
+    left: 7px;
+    font-size: 10.5px;
+    font-weight: 600;
+    color: var(--dim);
+  }
+  .slot .x {
+    display: none;
+    position: absolute;
+    top: 3px;
+    right: 7px;
+    font-size: 10.5px;
+    color: var(--dim);
+  }
+  .slot.filled {
+    border-style: solid;
+    border-color: var(--line);
+    background: var(--card);
+    box-shadow: 0 1px 2px rgba(15, 23, 42, .06);
+  }
+  .slot.filled .x { display: inline; }
+  .slot.target { border-color: var(--accent); }
+  .slot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .slot:active { transform: translateY(1px); }
+
+  .status { font-size: 14px; min-height: 20px; margin: 8px 0 0; }
+  .status.bad { color: var(--warn); font-weight: 600; }
+
+  /* ── 명령 카드 9장 — 종류를 색·묶음으로 드러내지 않는다 ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    max-width: 560px;
+  }
+  .pcard {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    min-height: 52px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .pcard.on {
+    border-color: var(--accent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+    background: #eff4ff;
+  }
+  .pcard:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pcard:active { transform: translateY(1px); }
+
+  @media (max-width: 460px) {
+    :root { --obj: 56px; }
+    body { padding: 14px 12px 24px; }
+    .panel { padding: 10px; }
+    .scene { grid-template-columns: 84px minmax(0, 1fr) 84px; gap: 6px; }
+    .bank { padding: 6px 4px; min-height: 110px; }
+    .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pcard { padding: 8px; min-height: 48px; }
+  }
+
+  /* 아주 좁은 화면(320px대) — 판이 옆으로 넘치지 않게 한 단계 더 줄인다 */
+  @media (max-width: 359px) {
+    :root { --obj: 50px; }
+    .scene { grid-template-columns: 70px minmax(0, 1fr) 70px; }
+    .slot { font-size: 11.5px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .slot:active, .pcard:active { transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<h1>누가 해도 똑같을까?</h1>
+<p class="hint">명령 카드를 명령 줄에 늘어놓으면, 로봇 A와 로봇 B가 같은 줄을 처음 판부터 각자 실행해요.</p>
+
+<section class="panel">
+  <p class="viewcap" id="viewCap"><b>처음 판</b> — 자취의 작은 판을 누르면 여기에 크게 보여요.</p>
+  <div class="scene" aria-hidden="true">
+    <div class="bank" id="bankL">
+      <div class="bank-label">왼쪽 기슭</div>
+    </div>
+    <div class="water" id="waterBox">
+      <span class="boat-icon">🛶</span>
+    </div>
+    <div class="bank" id="bankR">
+      <div class="bank-label">오른쪽 기슭</div>
+    </div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>실행 자취 — 로봇 A · 로봇 B</h2>
+  <p class="sub">카드를 끼우거나 빼면 두 로봇이 처음 판부터 다시 실행해요. 판 하나가 배 한 번 건넌 것이에요.</p>
+  <div class="rows" id="rows"></div>
+  <p class="visually-hidden" id="liveNote" aria-live="polite"></p>
+</section>
+
+<section class="panel">
+  <div class="linehead">
+    <h2 id="lineTitle">명령 줄</h2>
+    <button class="clear" id="clearBtn" type="button">모두 빼기</button>
+  </div>
+  <p class="sub">아래에서 카드를 누른 다음, 끼울 칸을 누르세요. 줄에 있는 카드를 누르면 빠져요.</p>
+  <div class="slots" id="slots" role="group" aria-labelledby="lineTitle"></div>
+  <p class="status" id="status" aria-live="polite"></p>
+  <h2 style="margin-top:14px">명령 카드</h2>
+  <p class="sub">같은 카드를 여러 번 쓸 수 있어요.</p>
+  <div class="cards" id="cardsBox"></div>
+</section>
+
+<script>
+  // ═══ 실행 규칙 — 순수 계산 (화면과 무관, 검산 가능) ═══════════════
+
+  // 판은 01·02와 같은 16가지 공간. 배는 언제나 농부와 같은 쪽.
+  const CHARS = [
+    { id: 'farmer',  name: '농부',   icon: '🧑‍🌾' },
+    { id: 'wolf',    name: '늑대',   icon: '🐺' },
+    { id: 'goat',    name: '염소',   icon: '🐐' },
+    { id: 'cabbage', name: '양배추', icon: '🥬' }
+  ];
+  const START = { farmer: 'L', wolf: 'L', goat: 'L', cabbage: 'L' };
+  const GOAL  = { farmer: 'R', wolf: 'R', goat: 'R', cabbage: 'R' };
+
+  // 명령 카드 9장 — 종류가 배치에 드러나지 않게 섞어 둔 순서. 정렬하지 말 것.
+  const CARD_DEFS = [
+    { id: 'wolf',    label: '늑대를 옮긴다' },
+    { id: 'round',   label: '갔다 온다' },
+    { id: 'goat',    label: '염소를 옮긴다' },
+    { id: 'one',     label: '하나 옮긴다' },
+    { id: 'all',     label: '전부 옮긴다' },
+    { id: 'empty',   label: '빈 배로 건넌다' },
+    { id: 'danger',  label: '위험한 것을 옮긴다' },
+    { id: 'cabbage', label: '양배추를 옮긴다' },
+    { id: 'rest',    label: '남은 것을 옮긴다' }
+  ];
+  const cardLabel = id => CARD_DEFS.find(d => d.id === id).label;
+
+  // 로봇 두 대 — 같은 대본을 저마다의 읽기 버릇대로, 그러나 각자 언제나
+  // 같은 방식으로(무작위 없음) 실행한다. 이 버릇은 화면 어디에도 설명하지
+  // 않는다 — 두 자취의 갈라짐 자체가 발견 대상이다.
+  //   order  대상을 고를 때 읽는 순서
+  //   danger 「위험한 것」을 무엇으로 읽는가
+  //   round  「갔다 온다」 — 빈 배로(empty) / 하나 태워 도로 데려오기(carry)
+  //   rest   「남은 것」 — 하나만(one) / 전부(all)
+  const ROBOTS = {
+    A: { order: ['wolf', 'goat', 'cabbage'], danger: 'wolf', round: 'empty', rest: 'one' },
+    B: { order: ['cabbage', 'goat', 'wolf'], danger: 'goat', round: 'carry', rest: 'all' }
+  };
+
+  // 배가 한 번 건넌다 — 농부가(태운 것이 있으면 함께) 반대쪽으로.
+  function crossed(board, item) {
+    const b = Object.assign({}, board);
+    b.farmer = b.farmer === 'L' ? 'R' : 'L';
+    if (item) b[item] = b.farmer;
+    return b;
+  }
+
+  // 규칙 위반 — 농부 없는 쪽에 늑대+염소 또는 염소+양배추 (01과 같은 판정).
+  // 위반은 판을 바꾸지 않는다. 표시만 남기고 실행은 계속된다.
+  function violationSide(b) {
+    if (b.wolf === b.goat && b.wolf !== b.farmer) return b.wolf;
+    if (b.goat === b.cabbage && b.goat !== b.farmer) return b.goat;
+    return null;
+  }
+
+  // 명령 하나를 실행 — 건넘마다 판 하나씩 담아 돌려준다.
+  // null이면 실행할 수 없는 명령(그 자리에 없는 것을 옮기라 함 등) — 멈춘다.
+  function runCard(cardId, board, robot) {
+    const steps = [];
+    let b = board;
+    const go = item => { b = crossed(b, item); steps.push(b); };
+    const avail = () => robot.order.filter(id => b[id] === b.farmer);
+
+    if (cardId === 'wolf' || cardId === 'goat' || cardId === 'cabbage') {
+      if (b[cardId] !== b.farmer) return null;
+      go(cardId);
+    } else if (cardId === 'empty') {
+      go(null);
+    } else if (cardId === 'one') {
+      const a = avail();
+      if (!a.length) return null;
+      go(a[0]);
+    } else if (cardId === 'danger') {
+      if (b[robot.danger] !== b.farmer) return null;
+      go(robot.danger);
+    } else if (cardId === 'round') {
+      if (robot.round === 'carry') {
+        const a = avail();
+        const item = a.length ? a[0] : null;   // 태울 것이 없으면 빈 배로
+        go(item);
+        go(item);
+      } else {
+        go(null);
+        go(null);
+      }
+    } else if (cardId === 'rest' && robot.rest === 'one') {
+      const a = avail();
+      if (!a.length) return null;
+      go(a[0]);
+    } else if (cardId === 'rest' || cardId === 'all') {
+      // 배 쪽에 있는 것들을 하나씩 건너편으로 — 남았으면 빈 배로 되돌아온다.
+      const from = b.farmer;
+      let a = avail();
+      if (!a.length) return null;
+      while (true) {
+        go(a[0]);
+        if (!robot.order.some(id => b[id] === from)) break;
+        go(null);
+        a = avail();
+      }
+    }
+    return steps;
+  }
+
+  // 대본 전체 실행 — 언제나 처음 판부터. 칸 목록을 돌려준다.
+  // 칸: {kind:'start'} / {kind:'board', n, cmd, bad} / {kind:'stop', cmd}
+  // 멈춘 뒤의 명령은 실행하지 않는다.
+  function runLine(line, robot) {
+    const cells = [{ kind: 'start', board: START }];
+    let board = START, n = 0;
+    for (let ci = 0; ci < line.length; ci++) {
+      const steps = runCard(line[ci], board, robot);
+      if (steps === null) {
+        cells.push({ kind: 'stop', cmd: ci });
+        break;
+      }
+      for (const b of steps) {
+        n += 1;
+        cells.push({ kind: 'board', board: b, n: n, cmd: ci, bad: violationSide(b) });
+      }
+      board = steps[steps.length - 1];
+    }
+    return cells;
+  }
+
+  function sameBoard(x, y) {
+    return CHARS.every(c => x[c.id] === y[c.id]);
+  }
+
+  // 두 자취가 처음으로 달라지는 칸의 번호. 끝까지 같으면 -1.
+  // 0번(처음 판)은 언제나 같으므로 1부터 본다.
+  function firstSplit(ca, cb) {
+    const len = Math.max(ca.length, cb.length);
+    for (let i = 1; i < len; i++) {
+      const a = ca[i], b = cb[i];
+      if (!a || !b) return i;
+      if (a.kind !== b.kind) return i;
+      if (a.kind === 'board' && !sameBoard(a.board, b.board)) return i;
+    }
+    return -1;
+  }
+
+  // ═══ 화면 연결 ═══════════════════════════════════════════════════
+
+  let line = [];        // 명령 줄 — 카드 id 배열, 최대 10장
+  let picked = null;    // 눌러 둔 명령 카드
+  let view = null;      // 큰 판에 보일 칸 — null이면 처음 판
+  const MAXLINE = 10;
+
+  const rowsBox = document.getElementById('rows');
+  const slotsBox = document.getElementById('slots');
+  const cardsBox = document.getElementById('cardsBox');
+  const statusEl = document.getElementById('status');
+  const liveNote = document.getElementById('liveNote');
+  const viewCap = document.getElementById('viewCap');
+  const bankL = document.getElementById('bankL');
+  const bankR = document.getElementById('bankR');
+  const waterBox = document.getElementById('waterBox');
+
+  function say(text, kind) {
+    statusEl.textContent = text;
+    statusEl.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  // 판 하나를 말로 — 칸 단추와 큰 판의 aria-label이 함께 쓴다.
+  function boardWords(b) {
+    const nl = [], nr = [];
+    (b.farmer === 'L' ? nl : nr).push('농부', '배');
+    for (const c of CHARS) {
+      if (c.id === 'farmer') continue;
+      (b[c.id] === 'L' ? nl : nr).push(c.name);
+    }
+    return '왼쪽: ' + (nl.join(', ') || '없음') +
+           ' / 오른쪽: ' + (nr.join(', ') || '없음');
+  }
+
+  // 작은 판 — 01의 미니 판 그대로. 배는 농부 쪽에 정박,
+  // 한쪽 이모지는 한 줄 최대 2개(3개면 2+1, 4개면 2+2).
+  function miniEl(b) {
+    const gl = [], gr = [];
+    (b.farmer === 'L' ? gl : gr).push('🧑‍🌾');
+    for (const c of CHARS) {
+      if (c.id === 'farmer') continue;
+      (b[c.id] === 'L' ? gl : gr).push(c.icon);
+    }
+    const bad = violationSide(b);
+    const d = document.createElement('div');
+    d.className = 'mini' + (bad ? ' bad' : '');
+    d.setAttribute('aria-hidden', 'true');   // 설명은 칸 단추가 맡는다
+    const pack = a =>
+      '<span class="pack">' +
+      a.map(e => '<span>' + e + '</span>').join('') + '</span>';
+    d.innerHTML =
+      '<div class="mini-side' + (bad === 'L' ? ' warnside' : '') + '">' + pack(gl) + '</div>' +
+      '<div class="mini-water ' + (b.farmer === 'L' ? 'dockL' : 'dockR') + '">🛶</div>' +
+      '<div class="mini-side' + (bad === 'R' ? ' warnside' : '') + '">' + pack(gr) + '</div>';
+    return d;
+  }
+
+  // ── 큰 판 — 캐릭터 그림은 한 번만 만들고 자리만 옮겨 끼운다 ──
+  const tiles = {};
+  for (const c of CHARS) {
+    const d = document.createElement('div');
+    d.className = 'obj';
+    d.innerHTML = '<span class="icon">' + c.icon + '</span>' +
+                  '<span class="name">' + c.name + '</span>';
+    tiles[c.id] = d;
+  }
+
+  function renderBig(board, capHTML) {
+    for (const c of CHARS) {
+      (board[c.id] === 'L' ? bankL : bankR).appendChild(tiles[c.id]);
+    }
+    waterBox.className = 'water ' + (board.farmer === 'L' ? 'dockL' : 'dockR');
+    const bad = violationSide(board);
+    bankL.classList.toggle('warn', bad === 'L');
+    bankR.classList.toggle('warn', bad === 'R');
+    viewCap.innerHTML = capHTML;
+  }
+
+  function showStart() {
+    view = null;
+    renderBig(START, '<b>처음 판</b> — 자취의 작은 판을 누르면 여기에 크게 보여요.');
+  }
+
+  // ── 실행 자취 두 줄 ──
+  let traces = { A: [], B: [] };
+
+  function cellButton(r, cell, split) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tcell' + (split ? ' split' : '');
+    const mini = miniEl(cell.board);
+    const cno = document.createElement('span');
+    cno.className = 'cno';
+
+    let label;
+    if (cell.kind === 'start') {
+      cno.textContent = '처음';
+      label = '처음 판 — ' + boardWords(cell.board);
+    } else if (cell.kind === 'goal') {
+      cno.textContent = '목표';
+      label = '목표 판 — ' + boardWords(cell.board);
+    } else {
+      cno.textContent = split ? cell.n + ' — 갈라짐' : cell.n;
+      label = '로봇 ' + r + ' ' + cell.n + '번째 건넘, 「' + cardLabel(cell.cardId) + '」 — ' +
+              boardWords(cell.board) +
+              (cell.bad ? '. 빨간 표시 있음' : '') +
+              (split ? '. 두 자취가 처음 달라진 칸' : '');
+    }
+    btn.setAttribute('aria-label', label + '. 누르면 위 큰 판으로 봐요.');
+    btn.appendChild(cno);
+    btn.appendChild(mini);
+    btn.addEventListener('click', () => {
+      rowsBox.querySelectorAll('.tcell.sel').forEach(el => el.classList.remove('sel'));
+      btn.classList.add('sel');
+      let cap;
+      if (cell.kind === 'start') cap = '<b>처음 판</b>';
+      else if (cell.kind === 'goal') cap = '<b>목표 판</b>';
+      else cap = '<b>로봇 ' + r + ' · ' + cell.n + '번째 건넘</b> — 「' +
+                 cardLabel(cell.cardId) + '」';
+      renderBig(cell.board, cap);
+    });
+    return btn;
+  }
+
+  function buildRow(r, cells, splitIdx) {
+    const row = document.createElement('div');
+    row.className = 'trow';
+
+    const lab = document.createElement('span');
+    lab.className = 'rlabel';
+    lab.textContent = '로봇 ' + r;
+    row.appendChild(lab);
+
+    row.appendChild(cellButton(r, cells[0], false));
+
+    // 명령별 묶음 — 같은 명령이 만든 판들을 한 상자에, 위에 카드 이름
+    let grp = null, grpCmd = -1;
+    for (let i = 1; i < cells.length; i++) {
+      const cell = cells[i];
+      if (cell.cmd !== grpCmd) {
+        grp = document.createElement('div');
+        grp.className = 'grp';
+        grp.innerHTML = '<p class="gname">' + cardLabel(line[cell.cmd]) + '</p>';
+        const gc = document.createElement('div');
+        gc.className = 'gcells';
+        grp.appendChild(gc);
+        row.appendChild(grp);
+        grpCmd = cell.cmd;
+      }
+      const gc = grp.lastChild;
+      if (cell.kind === 'stop') {
+        const d = document.createElement('div');
+        d.className = 'stopc' + (splitIdx === i ? ' split' : '');
+        d.setAttribute('role', 'img');
+        d.setAttribute('aria-label', '로봇 ' + r + ' — 「' + cardLabel(line[cell.cmd]) +
+          '」를 실행할 수 없어 여기서 멈췄어요' +
+          (splitIdx === i ? '. 두 자취가 처음 달라진 칸' : ''));
+        d.innerHTML = '<span class="ic" aria-hidden="true">⛔</span>' +
+                      '<span class="cno">' + (splitIdx === i ? '멈춤 — 갈라짐' : '멈춤') + '</span>';
+        gc.appendChild(d);
+      } else {
+        cell.cardId = line[cell.cmd];
+        gc.appendChild(cellButton(r, cell, splitIdx === i));
+      }
+    }
+
+    // 자취 끝에 목표 판을 나란히 — 같은지 다른지는 눈으로 비교한다
+    const goalWrap = document.createElement('div');
+    goalWrap.className = 'goalcell';
+    goalWrap.appendChild(cellButton(r, { kind: 'goal', board: GOAL }, false));
+    row.appendChild(goalWrap);
+
+    return row;
+  }
+
+  function rerun() {
+    traces.A = runLine(line, ROBOTS.A);
+    traces.B = runLine(line, ROBOTS.B);
+    const splitIdx = firstSplit(traces.A, traces.B);
+
+    rowsBox.innerHTML = '';
+    rowsBox.appendChild(buildRow('A', traces.A, splitIdx));
+    rowsBox.appendChild(buildRow('B', traces.B, splitIdx));
+
+    // 보조기기용 한 줄 요약 — 화면의 표시만 그대로 전한다
+    const nA = traces.A.filter(c => c.kind === 'board').length;
+    const nB = traces.B.filter(c => c.kind === 'board').length;
+    let note = '로봇 A ' + nA + '번, 로봇 B ' + nB + '번 건넘.';
+    if (traces.A[traces.A.length - 1].kind === 'stop') note += ' 로봇 A는 멈췄어요.';
+    if (traces.B[traces.B.length - 1].kind === 'stop') note += ' 로봇 B는 멈췄어요.';
+    note += splitIdx >= 0 ? ' 두 자취가 ' + splitIdx + '번째 칸에서 갈라져요.'
+                          : ' 갈라진 칸 없음.';
+    liveNote.textContent = note;
+
+    showStart();   // 줄이 바뀌면 큰 판은 처음 판으로 되돌린다
+  }
+
+  // ── 명령 줄 칸 10개 — 단추는 한 번만 만들고 내용만 바꾼다(초점 유지) ──
+  const slotBtns = [];
+  for (let k = 0; k < MAXLINE; k++) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'slot';
+    b.innerHTML = '<span class="sno" aria-hidden="true">' + (k + 1) + '</span>' +
+                  '<span class="stext"></span>' +
+                  '<span class="x" aria-hidden="true">✕</span>';
+    b.addEventListener('click', () => tapSlot(k));
+    slotBtns.push(b);
+    slotsBox.appendChild(b);
+  }
+
+  function renderSlots() {
+    for (let k = 0; k < MAXLINE; k++) {
+      const b = slotBtns[k];
+      const filled = k < line.length;
+      b.classList.toggle('filled', filled);
+      b.classList.toggle('target', !!picked && k <= line.length && line.length < MAXLINE);
+      b.querySelector('.stext').textContent = filled ? cardLabel(line[k]) : '';
+      let label;
+      if (filled) {
+        label = (k + 1) + '번째 칸 — ' + cardLabel(line[k]) +
+                (picked ? '. 누르면 이 앞에 「' + cardLabel(picked) + '」를 끼워요'
+                        : '. 누르면 빼요');
+      } else if (picked && k === line.length) {
+        label = (k + 1) + '번째 칸 — 누르면 여기에 「' + cardLabel(picked) + '」를 끼워요';
+      } else {
+        label = (k + 1) + '번째 칸 — 빈 칸';
+      }
+      b.setAttribute('aria-label', label);
+    }
+  }
+
+  function tapSlot(k) {
+    if (picked) {
+      if (line.length >= MAXLINE) {
+        say('명령 줄 열 칸이 다 찼어요. 먼저 카드를 빼 주세요.', 'bad');
+        return;
+      }
+      line.splice(Math.min(k, line.length), 0, picked);
+      picked = null;
+      say('');
+      renderCards();
+      renderSlots();
+      rerun();
+    } else if (k < line.length) {
+      line.splice(k, 1);
+      say('');
+      renderSlots();
+      rerun();
+    } else {
+      say('먼저 아래에서 명령 카드를 누르세요.');
+    }
+  }
+
+  // ── 명령 카드 9장 ──
+  const cardBtns = {};
+  for (const d of CARD_DEFS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'pcard';
+    b.textContent = d.label;
+    b.addEventListener('click', () => {
+      picked = picked === d.id ? null : d.id;
+      say(picked ? '「' + d.label + '」 — 명령 줄에서 끼울 칸을 누르세요.' : '');
+      renderCards();
+      renderSlots();
+    });
+    cardBtns[d.id] = b;
+    cardsBox.appendChild(b);
+  }
+
+  function renderCards() {
+    for (const d of CARD_DEFS) {
+      const on = picked === d.id;
+      cardBtns[d.id].classList.toggle('on', on);
+      cardBtns[d.id].setAttribute('aria-pressed', on);
+      cardBtns[d.id].setAttribute('aria-label',
+        '「' + d.label + '」 카드' + (on ? ', 골라 둠' : ''));
+    }
+  }
+
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    line = [];
+    picked = null;
+    say('');
+    renderCards();
+    renderSlots();
+    rerun();
+  });
+
+  renderCards();
+  renderSlots();
+  rerun();
+</script>
+
+</body>
+</html>
