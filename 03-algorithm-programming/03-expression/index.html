@@ -41,12 +41,27 @@
   }
   .hint { margin: 0 0 16px; font-size: 14px; color: var(--dim); }
 
+  /* 배치 — 좁은 화면은 위에서 아래로 판 → 명령 → 자취(아래로 자란다).
+     자취가 명령보다 위에 있으면 카드를 끼울 때마다 조작부가 밀려 내려간다.
+     넓은 화면은 왼쪽(판·명령) | 오른쪽(자취) 두 단 */
+  .top { max-width: 640px; }
+  .traces { margin-top: 12px; }
+  @media (min-width: 980px) {
+    .top {
+      max-width: 1160px;
+      display: grid;
+      grid-template-columns: minmax(380px, 560px) minmax(360px, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+    .traces { margin-top: 0; }
+  }
+
   .panel {
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 12px;
     padding: 14px;
-    max-width: 640px;
   }
   .panel + .panel { margin-top: 12px; }
   h2 { margin: 0 0 2px; font-size: 15px; font-weight: 700; }
@@ -127,28 +142,34 @@
   .obj .icon { font-size: calc(var(--obj) * 0.42); line-height: 1; }
   .obj .name { font-size: 12px; font-weight: 600; color: var(--dim); }
 
-  /* ── 실행 자취 — 로봇 두 줄이 한 몸으로 옆으로 스크롤된다 ── */
-  .rows { overflow-x: auto; padding-bottom: 4px; }
-  .trow {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
-    width: max-content;
-    padding: 6px 2px;
+  /* ── 실행 자취 — 왼쪽 로봇 A, 오른쪽 로봇 B. 카드가 늘면 아래로 자란다 ── */
+  .cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
   }
-  .trow + .trow { border-top: 1px dashed var(--line); }
+  .tcol {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    padding: 0 8px;
+  }
+  .tcol + .tcol { border-left: 1px dashed var(--line); }
+  /* 줄기 이름표 — 내려가며 봐도 어느 로봇인지 보이게 화면 위에 붙는다 */
   .rlabel {
     position: sticky;
-    left: 0;
+    top: 6px;
     z-index: 2;
-    align-self: center;
     background: var(--card);
     border: 1px solid var(--line);
     border-radius: 8px;
-    padding: 6px 8px;
+    padding: 6px 10px;
     font-size: 13px;
     font-weight: 700;
     white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .10);
   }
 
   /* 명령 하나가 만든 판들의 묶음 — 위에 카드 이름 */
@@ -164,15 +185,21 @@
     font-weight: 600;
     color: var(--dim);
     white-space: nowrap;
+    text-align: center;
   }
-  .grp .gcells { display: flex; gap: 6px; }
+  .grp .gcells {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
 
-  /* 자취 칸 — 누르면 위의 큰 판으로 크게 본다 */
+  /* 자취 칸 — 누르면 큰 판으로 크게 본다 */
   .tcell {
     border: 0;
     background: none;
     padding: 0;
-    width: 118px;   /* 한쪽에 넷(2+2)이 서도 아이콘 묶음(36px)이 잘리지 않는 폭 */
+    width: 150px;   /* 한쪽에 넷(2+2)이 서도 아이콘 묶음(36px)이 잘리지 않는 폭 */
     display: flex;
     flex-direction: column;
     gap: 3px;
@@ -211,18 +238,19 @@
   .stopc .cno { font-size: 11px; font-weight: 600; color: var(--ink); }
   .grp .gcells .stopc.split { outline: 3px solid var(--split); outline-offset: 2px; }
 
-  /* 자취 끝의 목표 판 — 점선으로 갈라 두기만 한다 */
+  /* 줄기 끝의 목표 판 — 점선으로 갈라 두기만 한다 */
   .goalcell {
-    margin-left: 14px;
+    margin-top: 6px;
+    padding-top: 12px;
     position: relative;
   }
   .goalcell::before {
     content: '';
     position: absolute;
-    left: -9px;
-    top: 2px;
-    bottom: 2px;
-    border-left: 2px dashed var(--line);
+    top: 0;
+    left: 8px;
+    right: 8px;
+    border-top: 2px dashed var(--line);
   }
 
   /* 작은 판 — 01의 미니 판 그대로 */
@@ -383,13 +411,17 @@
     .bank { padding: 6px 4px; min-height: 110px; }
     .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .pcard { padding: 8px; min-height: 48px; }
+    .tcol { padding: 0 4px; }
+    .tcell { width: 132px; }
   }
 
-  /* 아주 좁은 화면(320px대) — 판이 옆으로 넘치지 않게 한 단계 더 줄인다 */
+  /* 아주 좁은 화면(320px대) — 판과 자취가 옆으로 넘치지 않게 한 단계 더 줄인다 */
   @media (max-width: 359px) {
     :root { --obj: 50px; }
     .scene { grid-template-columns: 70px minmax(0, 1fr) 70px; }
     .slot { font-size: 11.5px; }
+    .tcell { width: 122px; }
+    .grp { padding: 3px 2px 4px; }
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -402,40 +434,44 @@
 <h1>누가 해도 똑같을까?</h1>
 <p class="hint">명령 카드를 명령 줄에 늘어놓으면, 로봇 A와 로봇 B가 같은 줄을 처음 판부터 각자 실행해요.</p>
 
-<section class="panel">
-  <p class="viewcap" id="viewCap"><b>처음 판</b> — 자취의 작은 판을 누르면 여기에 크게 보여요.</p>
-  <div class="scene" aria-hidden="true">
-    <div class="bank" id="bankL">
-      <div class="bank-label">왼쪽 기슭</div>
-    </div>
-    <div class="water" id="waterBox">
-      <span class="boat-icon">🛶</span>
-    </div>
-    <div class="bank" id="bankR">
-      <div class="bank-label">오른쪽 기슭</div>
-    </div>
-  </div>
-</section>
+<div class="top">
+  <div class="ctrl">
+    <section class="panel">
+      <p class="viewcap" id="viewCap"><b>처음 판</b> — 자취의 작은 판을 누르면 여기에 크게 보여요.</p>
+      <div class="scene" aria-hidden="true">
+        <div class="bank" id="bankL">
+          <div class="bank-label">왼쪽 기슭</div>
+        </div>
+        <div class="water" id="waterBox">
+          <span class="boat-icon">🛶</span>
+        </div>
+        <div class="bank" id="bankR">
+          <div class="bank-label">오른쪽 기슭</div>
+        </div>
+      </div>
+    </section>
 
-<section class="panel">
-  <h2>실행 자취 — 로봇 A · 로봇 B</h2>
-  <p class="sub">카드를 끼우거나 빼면 두 로봇이 처음 판부터 다시 실행해요. 판 하나가 배 한 번 건넌 것이에요.</p>
-  <div class="rows" id="rows"></div>
-  <p class="visually-hidden" id="liveNote" aria-live="polite"></p>
-</section>
-
-<section class="panel">
-  <div class="linehead">
-    <h2 id="lineTitle">명령 줄</h2>
-    <button class="clear" id="clearBtn" type="button">모두 빼기</button>
+    <section class="panel">
+      <div class="linehead">
+        <h2 id="lineTitle">명령 줄</h2>
+        <button class="clear" id="clearBtn" type="button">모두 빼기</button>
+      </div>
+      <p class="sub">아래에서 카드를 누른 다음, 끼울 칸을 누르세요. 줄에 있는 카드를 누르면 빠져요.</p>
+      <div class="slots" id="slots" role="group" aria-labelledby="lineTitle"></div>
+      <p class="status" id="status" aria-live="polite"></p>
+      <h2 style="margin-top:14px">명령 카드</h2>
+      <p class="sub">같은 카드를 여러 번 쓸 수 있어요.</p>
+      <div class="cards" id="cardsBox"></div>
+    </section>
   </div>
-  <p class="sub">아래에서 카드를 누른 다음, 끼울 칸을 누르세요. 줄에 있는 카드를 누르면 빠져요.</p>
-  <div class="slots" id="slots" role="group" aria-labelledby="lineTitle"></div>
-  <p class="status" id="status" aria-live="polite"></p>
-  <h2 style="margin-top:14px">명령 카드</h2>
-  <p class="sub">같은 카드를 여러 번 쓸 수 있어요.</p>
-  <div class="cards" id="cardsBox"></div>
-</section>
+
+  <section class="panel traces">
+    <h2>실행 자취 — 로봇 A · 로봇 B</h2>
+    <p class="sub">카드를 끼우거나 빼면 두 로봇이 처음 판부터 다시 실행하고, 판이 아래로 한 칸씩 쌓여요. 판 하나가 배 한 번 건넌 것이에요.</p>
+    <div class="cols" id="cols"></div>
+    <p class="visually-hidden" id="liveNote" aria-live="polite"></p>
+  </section>
+</div>
 
 <script>
   // ═══ 실행 규칙 — 순수 계산 (화면과 무관, 검산 가능) ═══════════════
@@ -586,7 +622,7 @@
   let view = null;      // 큰 판에 보일 칸 — null이면 처음 판
   const MAXLINE = 10;
 
-  const rowsBox = document.getElementById('rows');
+  const colsBox = document.getElementById('cols');
   const slotsBox = document.getElementById('slots');
   const cardsBox = document.getElementById('cardsBox');
   const statusEl = document.getElementById('status');
@@ -687,11 +723,11 @@
               (cell.bad ? '. 빨간 표시 있음' : '') +
               (split ? '. 두 자취가 처음 달라진 칸' : '');
     }
-    btn.setAttribute('aria-label', label + '. 누르면 위 큰 판으로 봐요.');
+    btn.setAttribute('aria-label', label + '. 누르면 큰 판으로 봐요.');
     btn.appendChild(cno);
     btn.appendChild(mini);
     btn.addEventListener('click', () => {
-      rowsBox.querySelectorAll('.tcell.sel').forEach(el => el.classList.remove('sel'));
+      colsBox.querySelectorAll('.tcell.sel').forEach(el => el.classList.remove('sel'));
       btn.classList.add('sel');
       let cap;
       if (cell.kind === 'start') cap = '<b>처음 판</b>';
@@ -703,16 +739,17 @@
     return btn;
   }
 
-  function buildRow(r, cells, splitIdx) {
-    const row = document.createElement('div');
-    row.className = 'trow';
+  // 로봇 한 대의 자취 줄기 — 처음 판부터 아래로 자라고, 끝에 목표 판
+  function buildCol(r, cells, splitIdx) {
+    const col = document.createElement('div');
+    col.className = 'tcol';
 
     const lab = document.createElement('span');
     lab.className = 'rlabel';
     lab.textContent = '로봇 ' + r;
-    row.appendChild(lab);
+    col.appendChild(lab);
 
-    row.appendChild(cellButton(r, cells[0], false));
+    col.appendChild(cellButton(r, cells[0], false));
 
     // 명령별 묶음 — 같은 명령이 만든 판들을 한 상자에, 위에 카드 이름
     let grp = null, grpCmd = -1;
@@ -725,7 +762,7 @@
         const gc = document.createElement('div');
         gc.className = 'gcells';
         grp.appendChild(gc);
-        row.appendChild(grp);
+        col.appendChild(grp);
         grpCmd = cell.cmd;
       }
       const gc = grp.lastChild;
@@ -745,13 +782,13 @@
       }
     }
 
-    // 자취 끝에 목표 판을 나란히 — 같은지 다른지는 눈으로 비교한다
+    // 줄기 끝에 목표 판을 나란히 — 같은지 다른지는 눈으로 비교한다
     const goalWrap = document.createElement('div');
     goalWrap.className = 'goalcell';
     goalWrap.appendChild(cellButton(r, { kind: 'goal', board: GOAL }, false));
-    row.appendChild(goalWrap);
+    col.appendChild(goalWrap);
 
-    return row;
+    return col;
   }
 
   function rerun() {
@@ -759,9 +796,9 @@
     traces.B = runLine(line, ROBOTS.B);
     const splitIdx = firstSplit(traces.A, traces.B);
 
-    rowsBox.innerHTML = '';
-    rowsBox.appendChild(buildRow('A', traces.A, splitIdx));
-    rowsBox.appendChild(buildRow('B', traces.B, splitIdx));
+    colsBox.innerHTML = '';
+    colsBox.appendChild(buildCol('A', traces.A, splitIdx));
+    colsBox.appendChild(buildCol('B', traces.B, splitIdx));
 
     // 보조기기용 한 줄 요약 — 화면의 표시만 그대로 전한다
     const nA = traces.A.filter(c => c.kind === 'board').length;
