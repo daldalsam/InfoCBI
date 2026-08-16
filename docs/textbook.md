@@ -189,7 +189,7 @@ info-class-apps/
 | 2 | III-2-02 논리 연산 | `03-algorithm-programming/05-logic` | 스위치 조작 + 진리표 자동 완성 |
 | 3 | III-2-03 중첩 제어 구조 | `.../06-nested-control` | 반복 실행 순서 시각화 |
 | 4 | III-2-04 리스트 | `.../07-list` | 배열 칸에 값 넣고 빼고 찾기 |
-| 5 | III-1-04 알고리즘 분석 | `.../04-analysis` | 정렬·탐색 나란히 비교 |
+| 5 | III-1-04 알고리즘 분석 | `.../04-analysis` | 응급차 이송 — 기준·전략 비교(설계에서 확정) |
 | 6 | III-1-02 추상화 | `.../02-abstraction` | 정보 걷어내기 실험 |
 | 7 | IV-1-02 데이터와 학습 | `04-ai/02-data-learning` | 편향 실험기 |
 | 8 | I-1-01 컴퓨팅 시스템 | `01-computing-system/01-system-structure` | 자원 할당 시뮬레이터 |

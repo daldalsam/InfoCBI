@@ -221,6 +221,7 @@
 | 03-algorithm-programming/01-problem-state | 추상화 | 결과를 좌우하는 것만 선택해 상태로 정의해야 문제를 이어갈 수 있다 |
 | 03-algorithm-programming/02-abstraction | 추상화 | 규칙을 건드리지 않는 한 겉모습은 바꾸거나 버려도 같은 문제이고, 많이 버릴수록 한 풀이가 통하는 범위가 넓어진다 |
 | 03-algorithm-programming/03-expression | 추상화 | 실행하는 이가 정할 것이 남지 않게 약속된 표현으로 순서를 적어야 누가 실행해도 과정과 결과가 같아진다 |
+| 03-algorithm-programming/04-analysis | 추상화 | 무엇을 잴지(기준)를 정해야 비교가 성립하고, 기준과 상황이 바뀌면 더 좋은 풀이도 바뀐다 |
 
 **점검 질문**
 
