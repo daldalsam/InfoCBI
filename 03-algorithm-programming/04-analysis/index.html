@@ -74,8 +74,11 @@ body[data-시간대="퇴근길"] #지도칸 svg { background: #fff7ed; }
   fill: none; stroke-linecap: round; stroke-linejoin: round;
   opacity: 0; pointer-events: none; transition: opacity .15s;
 }
-.후보테 { stroke: #93c5fd; stroke-width: 27; }
-.후보테.보임 { opacity: .65; }
+.후보테 { stroke: #2563eb; stroke-width: 27; }
+.후보테.보임 { opacity: .75; }
+/* 후보가 새로 생긴 순간 한 번만 깜빡 — 상시 반복 아님(lesson.md 「하지 않을 것」) */
+.후보테.깜빡 { animation: 후보깜빡 .7s ease-out; }
+@keyframes 후보깜빡 { 0% { opacity: .1; } 50% { opacity: 1; } }
 .초점테 { stroke: #1d4ed8; stroke-width: 21; }
 .초점테.보임 { opacity: .4; }
 
@@ -102,12 +105,13 @@ body[data-시간대="퇴근길"] #지도칸 svg { background: #fff7ed; }
 .반짝칸 { animation: 반짝임 .8s ease-out; }
 @keyframes 반짝임 { from { fill: #fde68a; background-color: #fde68a; } }
 @media (prefers-reduced-motion: reduce) {
-  .반짝 .값상자, .반짝칸 { animation: none; }
+  .반짝 .값상자, .반짝칸, .후보테.깜빡 { animation: none; }
 }
 
 .장소원 { fill: #fff; stroke: #475569; stroke-width: 3.5; }
 .장소원.출발 { fill: #b91c1c; stroke: #7f1d1d; }
 .장소이름 { font-size: 24px; font-weight: 600; fill: var(--먹); text-anchor: middle; pointer-events: none; }
+.장소부제 { font-size: 20px; fill: var(--회); text-anchor: middle; pointer-events: none; }
 .장소그림 { font-size: 30px; text-anchor: middle; pointer-events: none; }
 
 /* ── 도착 기록 ── */
@@ -209,6 +213,7 @@ body[data-시간대="퇴근길"] .지금시간대 { background: #ffedd5; border-
     <button id="가까운차단추" class="차단추">가까운 길만 따라가는 차</button>
     <button id="빠른차단추" class="차단추">빠른 길만 따라가는 차</button>
     <button id="되돌리기단추" class="보통단추">↩ 한 구간 되돌리기</button>
+    <button id="처음으로단추" class="보통단추">↺ 처음으로 되돌리기</button>
   </div>
 </main>
 
@@ -382,7 +387,7 @@ const 구간굽이 = { '반대편 우회로': [{ x: 810, y: 500 }] };
 // 구간 이름·값 상자의 위치 (선 가운데에서 손으로 옮겨 둔 자리)
 const 라벨자리 = {
   '시장길':        { x: 150, y: 168 },
-  '큰길':          { x: 200, y: 352 },
+  '큰길':          { x: 215, y: 362 },
   '시장윗길':      { x: 607, y: 78 },
   '굴다리':        { x: 405, y: 470 },
   '반대편 우회로': { x: 750, y: 532 },
@@ -512,6 +517,10 @@ function 지도그리기() {
       svg요소('circle', { r: 13, class: '장소원' }, 무리);
     }
     svg요소('text', { x: 점.이름x ?? 0, y: 점.이름y, class: '장소이름' }, 무리).textContent = 이름;
+    if (이름 === 시작) {
+      // 출발지만 따로 알린다 — 병원은 🏥와 가장 큰 원이 이미 도착지를 말한다
+      svg요소('text', { x: 점.이름x ?? 0, y: 점.이름y + 25, class: '장소부제' }, 무리).textContent = '(출발)';
+    }
   }
   화면.여기테 = svg요소('circle', { class: '여기테' }, 층.장소);
 }
@@ -546,6 +555,7 @@ function 기록갱신(반짝) {
 }
 
 // 내 길의 선·현재 위치 테·이을 수 있는 구간 표시를 갱신한다.
+let 이전후보 = null;   // 첫 그리기에서는 깜빡이지 않는다
 function 내길그리기() {
   화면.내길선.setAttribute('d', 내길.length > 1 ? 평행선d(경로점들(내길), 0) : '');
   const 끝 = 내길[내길.length - 1];
@@ -553,13 +563,21 @@ function 내길그리기() {
   화면.여기테.setAttribute('cx', 점.x);
   화면.여기테.setAttribute('cy', 점.y);
   화면.여기테.setAttribute('r', 지점반지름(끝) + 9);
+  const 새후보 = new Set();
   for (const 구간 of 구간들) {
     const 그림 = 화면.구간그림[구간.이름];
     const 후보 = 끝 !== 목표 && 구간.가 === 끝;
+    if (후보) 새후보.add(구간.이름);
     그림.후보테.classList.toggle('보임', 후보);
     그림.잡기.classList.toggle('이을수있음', 후보);
     그림.값무리.classList.toggle('이을수있음', 후보);
+    // 후보가 새로 생긴 순간에만 한 번 깜빡 — 상시 반복 아님
+    그림.후보테.classList.remove('깜빡');
+    if (후보 && 이전후보 !== null && !이전후보.has(구간.이름) && !움직임줄이기()) {
+      반짝이기(그림.후보테, '깜빡');
+    }
   }
+  이전후보 = 새후보;
   접근성라벨갱신();
 }
 
@@ -625,6 +643,16 @@ document.getElementById('되돌리기단추').addEventListener('click', () => {
   내길그리기();
   기록갱신(false);
   상태알림(`한 구간 되돌렸어요. 지금 ${내길[내길.length - 1]}.`);
+});
+
+// 처음으로 되돌리기 — 내 길만 처음으로. 차들의 선·기록·시간대는 절대
+// 건드리지 않는다(리셋 없음 원칙 — 깨지면 활동 3의 비교가 무너진다).
+document.getElementById('처음으로단추').addEventListener('click', () => {
+  if (내길.length < 2) { 상태알림('되돌릴 구간이 없어요.'); return; }
+  내길 = [시작];
+  내길그리기();
+  기록갱신(false);
+  상태알림('처음으로 되돌렸어요. 지금 사고 지점.');
 });
 
 // 차 단추 — 누를 때마다 지금 시간대의 판에서 새로 계산해 그 차의 선을 갈아 끼운다
