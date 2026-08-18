@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>무엇을 보여 줄까?</title>
+<style>
+:root {
+  --재활용: #14532d;        /* 잉크 — ♻ */
+  --재활용바탕: #dcfce7;
+  --일반: #78350f;          /* 잉크 — ■ */
+  --일반바탕: #f5e6d3;
+  --담김: #1e40af;          /* 창고에서 담아 간 카드 (판정 색과 겹치지 않게 파랑) */
+  --담김바탕: #dbeafe;
+  --먹: #0f172a;
+  --잔글: #475569;          /* 작은 안내 글자. 칸을 칠하는 데는 쓰지 않는다 */
+  --테두리: #cbd5e1;
+  --바탕: #f8fafc;
+  --무늬잉크: #334155;      /* 흰 바탕과 11.2:1 — 지킬 선의 3:1을 넉넉히 넘는다 */
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  font-family: system-ui, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  color: var(--먹);
+  background: var(--바탕);
+}
+button { font-family: inherit; cursor: pointer; }
+.숨김 {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+
+/* ── 머리 ── */
+.머리 { max-width: 900px; margin: 0 auto; padding: 8px 10px 0; }
+.머리 h1 { font-size: 17px; margin: 0; font-weight: 700; }
+.머리 .한줄 { margin: 2px 0 0; font-size: 12.5px; color: var(--잔글); word-break: keep-all; }
+
+/* ── 위에 붙어 있는 계기판·종류별 표·담는 칸 ──
+   이 단원의 발견은 「담은 묶음 ↔ 종류별 표」의 관계라, 320px에서 이 셋이 스크롤
+   없이 함께 보여야 한다(지킬 선). 창고·세상 격자는 아래에서 스크롤해도 된다.
+   01의 「두 판이 나란히」 규칙은 여기 해당하지 않는다 — 동시 가시성의 대상이 다르다. */
+.붙는무리 {
+  position: sticky; top: 0; z-index: 5;
+  background: var(--바탕); border-bottom: 1px solid var(--테두리);
+}
+.붙는속 { max-width: 900px; margin: 0 auto; padding: 4px 10px 6px; }
+
+.계기판 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin: 0; }
+.큰수 { font-size: 13px; margin: 0; }
+.큰수 b { font-size: 26px; line-height: 1.1; }
+.작은수 { font-size: 12px; color: var(--잔글); margin: 0; }
+.작은수 b { font-size: 15px; color: var(--먹); }
+
+/* 0인 줄이 눈에 들어와야 한다 — 색만으로 표시하지 않고 「!」 기호를 함께 쓴다
+   (색약 학생에게 이 표가 유일한 근거다). */
+.종류표 { width: 100%; border-collapse: collapse; margin: 3px 0 5px; }
+.종류표 th, .종류표 td { padding: 0 2px; font-size: 12.5px; font-weight: 400; text-align: left; }
+.종류표 th { white-space: nowrap; }
+.종류표 .표무늬 { width: 28px; line-height: 0; }
+.종류표 .표값 { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.종류표 .표값 b { font-size: 15px; }
+.종류표 tr.영 { outline: 2px solid var(--먹); outline-offset: -1px; }
+.영표 {
+  display: inline-block; width: 15px; height: 15px; margin-right: 3px;
+  border: 1.5px solid var(--먹); border-radius: 4px;
+  font-size: 11px; font-weight: 700; line-height: 12px; text-align: center;
+}
+
+.담는칸 {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr));
+  gap: 4px; max-height: 100px; overflow-y: auto;
+}
+.담긴, .빈칸 {
+  display: flex; align-items: center; gap: 3px;
+  min-height: 42px; padding: 2px 4px; border-radius: 9px; text-align: left;
+}
+.담긴 { border: 2px solid var(--담김); background: var(--담김바탕); color: var(--먹); }
+.빈칸 {
+  border: 2px dashed var(--테두리); background: #fff;
+  justify-content: center; font-size: 11px; color: var(--잔글);
+}
+.담긴 .쪽이름 { font-size: 10.5px; line-height: 1.15; word-break: keep-all; overflow: hidden; }
+.넘침알림 { grid-column: 1 / -1; font-size: 11.5px; color: var(--먹); font-weight: 700; }
+
+/* 판에 변화가 없는 피드백(칸이 참, 6일 때 전부 담기)은 이 줄이 유일한 통로라
+   붙는무리 안에 둔다. */
+.상태줄 { margin: 3px 0 0; min-height: 17px; font-size: 12.5px; color: var(--잔글); }
+
+/* ── 조작 단추 ── */
+.단추무리 {
+  max-width: 900px; margin: 0 auto; padding: 8px 10px 0;
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+}
+.칸수쪽 { display: flex; align-items: center; gap: 4px; }
+.칸수쪽 .이름 { font-size: 12.5px; color: var(--잔글); }
+/* 현재 칸 수가 항상 크게 보여야 한다 — 학생이 칸 수를 모른 채 기록하면
+   활동 1~3의 숫자가 기록지와 어긋난다(지킬 선). */
+.칸수단추 {
+  min-height: 44px; min-width: 48px; padding: 2px 8px;
+  font-size: 17px; font-weight: 700;
+  background: #fff; border: 2px solid var(--테두리); border-radius: 10px; color: var(--잔글);
+}
+.칸수단추[aria-pressed="true"] {
+  background: var(--먹); border-color: var(--먹); color: #fff; font-size: 21px;
+}
+.보통단추 {
+  min-height: 44px; padding: 4px 10px; font-size: 13px; font-weight: 600;
+  background: #fff; border: 2px solid var(--테두리); border-radius: 10px;
+}
+
+/* ── 창고 · 세상 ── */
+.본문 { max-width: 900px; margin: 0 auto; padding: 4px 10px 24px; }
+.구역이름 { font-size: 14px; margin: 12px 0 4px; }
+.구역이름 span { font-size: 12px; color: var(--잔글); font-weight: 400; }
+.격자 { display: grid; gap: 5px; }
+.창고격자 { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+.세상격자 { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
+
+.카드 {
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 4px; border: 2px solid var(--테두리); border-radius: 10px;
+  background: #fff; text-align: left; color: var(--먹);
+}
+button.카드 { touch-action: manipulation; }
+.카드머리 { display: flex; align-items: center; gap: 3px; }
+.카드머리 .틈 { flex: 1; }
+.카드 .이름 { font-size: 11.5px; line-height: 1.2; word-break: keep-all; }
+/* 「깨끗」은 표시가 없다 — 줄만 비워 두어 카드 높이를 맞춘다. */
+.카드 .얼룩 { font-size: 10px; color: var(--먹); min-height: 13px; }
+.무늬바탕 { fill: #fff; stroke: var(--무늬잉크); stroke-width: 1.4; }
+.무늬칠 { stroke: none; }
+.무늬줄 { fill: none; stroke: var(--무늬잉크); }
+
+/* ♻는 기기에 따라 컬러 이모지로 그려져 아래 color 가 무시될 수 있다. 글자
+   표현을 요청하고(U+FE0E ＋ font-variant-emoji), 그래도 이모지로 뜨는 기기를
+   위해 딱지의 바탕과 테두리가 판정 색을 따로 든다 — 초록 ♻ · 갈색 ■ 가
+   글리프에만 걸려 있지 않게 한다. */
+.갈래 {
+  display: inline-block; min-width: 22px; padding: 1px 4px; border-radius: 6px;
+  font-size: 13px; font-weight: 700; text-align: center;
+  font-variant-emoji: text;
+}
+.갈래.재활용 { color: var(--재활용); background: var(--재활용바탕); border: 1.5px solid var(--재활용); }
+.갈래.일반 { color: var(--일반); background: var(--일반바탕); border: 1.5px solid var(--일반); }
+.갈래.없음 { color: var(--잔글); background: #fff; border: 1.5px dashed var(--테두리); }
+.잔 { font-size: 9.5px; color: var(--잔글); margin-right: 2px; }
+
+.담김표 {
+  font-size: 11px; font-weight: 700; color: var(--담김);
+  border: 1.5px solid var(--담김); background: var(--담김바탕);
+  border-radius: 5px; padding: 0 3px;
+}
+.창고카드[aria-pressed="true"] { border-color: var(--담김); background: var(--담김바탕); }
+
+.기계줄 { display: flex; align-items: center; gap: 2px; margin-top: 1px; }
+/* 틀린 카드는 굵은 테두리 ＋ ✗ — 색에 기대지 않는다(검수 22). */
+.세상카드.틀림 { border: 3px solid var(--먹); padding: 3px; }
+.틀림표 { font-size: 14px; font-weight: 700; color: var(--먹); }
+
+/* 판정이 방금 바뀐 카드만 한 번 강조 — 상시 깜빡임이 아니고, 테두리 바깥으로
+   그려서 판정 색과 ♻·■·✗를 가리지 않는다(하지 않을 것). 움직임 줄이기
+   설정에서 생략돼도 「방금 바뀐 카드 N」이 정보를 대신 든다(검수 16). */
+@keyframes 카드반짝 {
+  from { outline-color: rgba(180, 83, 9, .95); }
+  to { outline-color: rgba(180, 83, 9, 0); }
+}
+.세상카드.반짝 { outline: 3px solid transparent; outline-offset: 2px; animation: 카드반짝 .9s ease-out; }
+@media (prefers-reduced-motion: reduce) { .세상카드.반짝 { animation: none; } }
+
+.초점 { outline: 3px dashed var(--담김); outline-offset: 2px; }
+button:focus { outline: none; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- 종류는 색이 아니라 무늬로 가른다. ▤ 가로줄과 ▥ 세로줄이 30px에서
+         서로 구별되어야 활동 3의 천장 발견(창고에 ▥가 없다)이 성립한다. -->
+    <pattern id="무늬-가로줄" width="8" height="5" patternUnits="userSpaceOnUse">
+      <path d="M0 2.5 H8" stroke="var(--무늬잉크)" stroke-width="2" fill="none"/>
+    </pattern>
+    <pattern id="무늬-세로줄" width="5" height="8" patternUnits="userSpaceOnUse">
+      <path d="M2.5 0 V8" stroke="var(--무늬잉크)" stroke-width="2" fill="none"/>
+    </pattern>
+    <pattern id="무늬-촘촘빗금" width="5" height="5" patternUnits="userSpaceOnUse">
+      <path d="M0 5 L5 0 M-1 1 L1 -1 M4 6 L6 4 M0 0 L5 5 M-1 4 L1 6 M4 -1 L6 1"
+            stroke="var(--무늬잉크)" stroke-width="1.3" fill="none"/>
+    </pattern>
+  </defs>
+</svg>
+
+<header class="머리">
+  <h1>무엇을 보여 줄까?</h1>
+  <p class="한줄">학교 분리배출 — 창고에서 골라 담으면, 담은 것만 보고 세상 20개를 정한다</p>
+</header>
+
+<div class="붙는무리">
+  <div class="붙는속">
+    <div class="계기판">
+      <p class="큰수">맞힌 카드 <b id="맞힌수글">—</b>/20</p>
+      <p class="작은수">담은 칸 <b id="담은수글">0</b>/<b id="칸수글">6</b>
+        · 방금 바뀐 카드 <b id="바뀐수글">—</b></p>
+    </div>
+    <table class="종류표">
+      <caption class="숨김">종류별로 맞힌 카드</caption>
+      <tbody id="종류표몸"></tbody>
+    </table>
+    <div class="담는칸" id="담는칸"></div>
+    <p class="상태줄" id="상태줄" aria-live="polite"></p>
+  </div>
+</div>
+
+<div class="단추무리">
+  <div class="칸수쪽">
+    <span class="이름">담는 칸 수</span>
+    <button class="칸수단추" id="칸수6" aria-pressed="true">6</button>
+    <button class="칸수단추" id="칸수24" aria-pressed="false">24</button>
+  </div>
+  <button class="보통단추" id="전부담기단추">창고 전부 담기</button>
+  <button class="보통단추" id="되돌리기단추">↩ 하나 되돌리기</button>
+  <button class="보통단추" id="처음으로단추">↺ 담은 것 처음으로</button>
+</div>
+
+<main class="본문">
+  <h2 class="구역이름">창고 <span>24장</span></h2>
+  <div class="격자 창고격자" id="창고격자"></div>
+  <h2 class="구역이름">세상 <span>20개</span></h2>
+  <div class="격자 세상격자" id="세상격자"></div>
+</main>
+
+<script>
+// [엔진 시작] — 화면 없는 계산부. 검수 하네스가 이 구간을 그대로 읽어
+// 노드(node)에서 실행하므로, 여기서는 document·window 같은
+// 브라우저 전용 이름을 쓰지 않는다.
+//
+// 창고 24장·세상 20개·정답표 10칸·4단계 판정 방법을 바꾸면 lesson.md 5번의
+// 「데이터가 지켜야 할 관계」 1~22를 검수 하네스로 전부 다시 확인하고,
+// 예산 6장 1056가지·담는 칸 해제 41471가지 전수 계산도 다시 돌릴 것.
+
+const 종류목록 = ['종이', '플라스틱', '유리', '여러 재질', '영수증'];
+const 상태목록 = ['깨끗', '묻음'];
+
+// 종류는 색이 아니라 무늬로 가른다(lesson.md 「시각 언어」).
+// 회색은 쓰지 않는다 — 01에서 회색은 「판단하지 못함」이었고 이 앱에 그 상태는 없다.
+const 무늬표 = {
+  '종이': '가로줄', '플라스틱': '빈칸', '유리': '마름모',
+  '여러 재질': '촘촘빗금', '영수증': '세로줄',
+};
+const 무늬글 = {
+  '종이': '▤', '플라스틱': '▢', '유리': '◇', '여러 재질': '▩', '영수증': '▥',
+};
+
+// 종류·상태별 정답 10칸(검수 1). 규칙이 종류마다 다른 것이 이 자료의 핵심이다 —
+// 상태만 보는 규칙으로는 플라스틱·유리를 틀리고, 종류만 보는 규칙으로는 종이를
+// 틀린다. 그래서 어느 종류를 빼도 어딘가에서 대가가 난다. 손대지 말 것.
+// 상태는 「묻음」 한 가지뿐이고 「깨짐」은 없다 — 깨진 유리는 실제로 재활용이
+// 되지 않아 ◇묻음을 재활용으로 둔 이 표와 어긋난다.
+const 정답표 = {
+  '종이|깨끗': '재활용',     '종이|묻음': '일반',
+  '플라스틱|깨끗': '재활용', '플라스틱|묻음': '재활용',
+  '유리|깨끗': '재활용',     '유리|묻음': '재활용',
+  '여러 재질|깨끗': '일반',  '여러 재질|묻음': '일반',
+  '영수증|깨끗': '일반',     '영수증|묻음': '일반',
+};
+
+function 정답(종류, 상태) { return 정답표[`${종류}|${상태}`]; }
+
+// ── 창고 24장 ────────────────────────────────────────────────────────
+// 학교에서 많이 나오는 것이 많다 — 종이 8 · 플라스틱 8 · 유리 5 ·
+// 여러 재질 3 · 영수증 0(검수 2). 여러 재질이 3장뿐인 것이 「구하기 쉬운 것이
+// 많다」는 기제이고, 그래서 아무렇게나 담으면 한쪽으로 몰린 묶음이 된다.
+//
+// 순서는 고정이고 종류별로 정렬하지 않는다(검수 19) — 정렬하면 「여러 재질이
+// 3장뿐」이 첫눈에 보여 활동 1이 일어나지 않는다. 무작위도 아니다 — 학생이
+// 기록한 묶음을 친구가 재현할 수 있어야 한다.
+const 창고자료 = [
+  ['신문지', '종이', '깨끗'],
+  ['생수병', '플라스틱', '깨끗'],
+  ['과자 봉지', '여러 재질', '깨끗'],
+  ['유리병', '유리', '깨끗'],
+  ['젖은 달력', '종이', '묻음'],
+  ['샴푸통', '플라스틱', '깨끗'],
+  ['공책', '종이', '깨끗'],
+  ['양념 묻은 통', '플라스틱', '묻음'],
+  ['잼 병', '유리', '깨끗'],
+  ['종이상자', '종이', '깨끗'],
+  ['빨대', '플라스틱', '깨끗'],
+  ['소스 묻은 병', '유리', '묻음'],
+  ['기름 봉투', '종이', '묻음'],
+  ['칫솔', '여러 재질', '깨끗'],
+  ['반찬통', '플라스틱', '깨끗'],
+  ['전단지', '종이', '깨끗'],
+  ['국물 튄 그릇', '플라스틱', '묻음'],
+  ['유리컵', '유리', '깨끗'],
+  ['젖은 상자', '종이', '묻음'],
+  ['물통', '플라스틱', '깨끗'],
+  ['음식 묻은 봉지', '여러 재질', '묻음'],
+  ['시험지', '종이', '깨끗'],
+  ['음료 남은 병', '플라스틱', '묻음'],
+  ['잼 남은 병', '유리', '묻음'],
+];
+
+// ── 세상 20개 ────────────────────────────────────────────────────────
+// 대부분 평범하고 헷갈리는 것이 소수다 — 정답 재활용 15 · 일반 5(검수 3).
+// 영수증 ▥ 2개는 창고에 0장이므로 전부 담아도 채울 수 없다 — 이것이 활동 3의
+// 천장이자 논쟁적 질문의 입구다. 창고와 같은 품목 이름을 쓰지 않는다(검수 20) —
+// 이름이 겹치면 학생이 카드를 1:1로 외우고 종류·상태의 관계를 보지 않는다.
+// 「아이스팩」은 도입 손들기 전용이라 어느 카드 이름에도 쓰지 않는다(검수 21).
+const 세상자료 = [
+  ['교과서', '종이', '깨끗'],
+  ['요구르트병', '플라스틱', '깨끗'],
+  ['마트 영수증', '영수증', '깨끗'],
+  ['소주병', '유리', '깨끗'],
+  ['우산', '여러 재질', '깨끗'],
+  ['편지 봉투', '종이', '깨끗'],
+  ['김치 묻은 통', '플라스틱', '묻음'],
+  ['화장품 병', '유리', '깨끗'],
+  ['포장지', '종이', '깨끗'],
+  ['세제통', '플라스틱', '깨끗'],
+  ['코팅한 상장', '영수증', '깨끗'],
+  ['케첩 묻은 냅킨', '종이', '묻음'],
+  ['도시락 뚜껑', '플라스틱', '깨끗'],
+  ['유리 접시', '유리', '깨끗'],
+  ['보온병', '여러 재질', '깨끗'],
+  ['쇼핑백', '종이', '깨끗'],
+  ['요거트 남은 컵', '플라스틱', '묻음'],
+  ['참기름 묻은 병', '유리', '묻음'],
+  ['도화지', '종이', '깨끗'],
+  ['채소 포장재', '플라스틱', '깨끗'],
+];
+
+function 카드만들기(자료, 표) {
+  return 자료.map((줄, i) => ({
+    번호: `${표}${i + 1}`,
+    이름: 줄[0], 종류: 줄[1], 상태: 줄[2],
+    정답: 정답(줄[1], 줄[2]),
+  }));
+}
+
+const 창고카드 = 카드만들기(창고자료, '창');
+const 세상카드 = 카드만들기(세상자료, '세');
+
+// ── 기계의 방법 (화면에 설명하지 않는다) ─────────────────────────────
+// 담은 묶음으로만 판정한다. 네 단계를 위에서부터 적용한다.
+//   1 같은 무늬·같은 상태의 예시가 있으면 → 그 갈래
+//   2 없고 같은 무늬가 있으면 → 그 무늬 예시들의 다수결
+//   3 없고 같은 상태가 있으면 → 그 상태 예시들의 다수결
+//   4 그것도 없으면 → 담은 것 전체의 다수결
+// 「영수증은 절대 못 맞힌다」 같은 특별 처리를 넣지 말 것 — ▥ 2/2를 맞히는
+// 묶음이 41가지 실제로 있고(검수 11), 이 네 단계만으로 그렇게 나와야 한다.
+// 다수결은 카드 장수가 아니라 **서로 다른 종류·상태의 가짓수**로 센다 —
+// 같은 종류·상태의 예시는 여러 장이어도 한 표다. 장수로 세면
+// 「▤깨1 ▤묻1 ▢묻1 ◇묻1 ▩깨2」가 20/20이 되어, 논쟁적 질문
+// (「치우치지 않은 묶음을 만드는 것이 가능한가」)의 답이 화면에서 나와 버리고
+// 일반화 2(전체 숫자가 가린다)에 반례가 생긴다. 가짓수로 세면 상한이 18이고
+// lesson.md 5번의 전수 계산값이 전부 맞는다. 여기를 장수로 되돌리면
+// 검수 9·10·11·12·13·14가 한꺼번에 깨진다.
+function 다수결(카드들) {
+  const 갈래들 = new Map();
+  for (const 카드 of 카드들) 갈래들.set(`${카드.종류}|${카드.상태}`, 카드.정답);
+  let 재활용 = 0;
+  for (const 갈래 of 갈래들.values()) if (갈래 === '재활용') 재활용++;
+  // 동점이면 재활용 — 기계는 낙관적으로 틀린다(01의 「틀렸는지 스스로 알지
+  // 못한다」와 같은 자리). 무작위 금지, 담은 순서와도 무관해야 같은 묶음이
+  // 언제나 같은 판정이 된다(검수 5).
+  return 재활용 * 2 >= 갈래들.size ? '재활용' : '일반';
+}
+
+function 판정하기(담은카드들, 대상) {
+  if (담은카드들.length === 0) return null;
+  const 무늬상태같음 = 담은카드들.filter(
+    (카드) => 카드.종류 === 대상.종류 && 카드.상태 === 대상.상태);
+  if (무늬상태같음.length) return 다수결(무늬상태같음);
+  const 무늬같음 = 담은카드들.filter((카드) => 카드.종류 === 대상.종류);
+  if (무늬같음.length) return 다수결(무늬같음);
+  const 상태같음 = 담은카드들.filter((카드) => 카드.상태 === 대상.상태);
+  if (상태같음.length) return 다수결(상태같음);
+  return 다수결(담은카드들);
+}
+
+// ── 세상 20개를 한꺼번에 판정 ────────────────────────────────────────
+// 담은 것이 0장이면 판정하지 않는다(검수 4) — 맞힌수와 종류별을 null로
+// 돌려주고 화면은 `—`를 보인다. 0/20으로 표시하면 「전부 틀렸다」로 읽혀
+// 활동 1의 출발점이 실패처럼 보인다.
+function 세상계산(담은카드들) {
+  const 칸들 = 세상카드.map((카드) => {
+    const 판정 = 판정하기(담은카드들, 카드);
+    return { ...카드, 판정, 맞음: 판정 === null ? null : 판정 === 카드.정답 };
+  });
+  if (담은카드들.length === 0) return { 칸들, 맞힌수: null, 종류별: null };
+  const 종류별 = 종류목록.map((종류) => {
+    const 줄 = 칸들.filter((칸) => 칸.종류 === 종류);
+    return { 종류, 맞힌: 줄.filter((칸) => 칸.맞음).length, 전체: 줄.length };
+  });
+  return { 칸들, 맞힌수: 칸들.filter((칸) => 칸.맞음).length, 종류별 };
+}
+
+// ── 방금 바뀐 카드 ───────────────────────────────────────────────────
+// 직전 조작 한 번으로 판정이 바뀐 카드 수(검수 16). 누적이 아니다.
+// 기록지가 이 숫자를 옮겨 적으므로 학생이 눈으로 세게 하지 않는다.
+// 두 목록은 세상카드 순서를 공유한다는 전제다.
+function 판정차이수(전칸들, 새칸들) {
+  let 수 = 0;
+  for (let i = 0; i < 새칸들.length; i++) {
+    if (전칸들[i].판정 !== 새칸들[i].판정) 수++;
+  }
+  return 수;
+}
+
+// ── 담기 / 빼기 ──────────────────────────────────────────────────────
+// 담는 칸 수는 6과 24 두 값만 갖는다(기본 6). 아무 일도 일어나지 않을 때는
+// 받은 배열을 그대로 돌려준다 — 화면은 반환값이 같은 배열인지로 알아채고
+// 상태줄로 알린다(01의 규칙얹기와 같은 관습).
+const 칸수선택지 = [6, 24];
+
+function 담기(담은번호들, 번호, 칸수) {
+  if (담은번호들.includes(번호)) return 담은번호들;
+  if (담은번호들.length >= 칸수) return 담은번호들;   // 칸이 참 — 자동으로 밀어내지 않는다
+  return [...담은번호들, 번호];
+}
+
+function 빼기(담은번호들, 번호) {
+  if (!담은번호들.includes(번호)) return 담은번호들;
+  return 담은번호들.filter((n) => n !== 번호);
+}
+
+// 「창고 전부 담기」는 담는 칸이 24일 때만 작동한다(검수 18). 6일 때는 아무
+// 일도 하지 않고 같은 배열을 돌려준다 — 단추를 숨기거나 잠그지 않는다.
+function 전부담기(담은번호들, 칸수) {
+  if (칸수 < 창고카드.length) return 담은번호들;
+  return 창고카드.map((카드) => 카드.번호);
+}
+
+// 담는 칸 수를 6 → 24로 올려도 담긴 카드를 지우지 않고, 24 → 6으로 내릴 때
+// 넘치는 카드를 앱이 자동으로 빼지도 않는다(검수 17) — 학생이 직접 뺀다.
+function 넘친수(담은번호들, 칸수) {
+  return Math.max(0, 담은번호들.length - 칸수);
+}
+
+const 창고찾기표 = new Map(창고카드.map((카드) => [카드.번호, 카드]));
+function 담은카드들만들기(담은번호들) {
+  return 담은번호들.map((번호) => 창고찾기표.get(번호)).filter(Boolean);
+}
+// [엔진 끝]
+</script>
+
+<script>
+// ── 화면 ─────────────────────────────────────────────────────────────
+
+function svg요소(태그, 속성 = {}, 부모 = null) {
+  const 것 = document.createElementNS('http://www.w3.org/2000/svg', 태그);
+  for (const [키, 값] of Object.entries(속성)) {
+    if (값 === null || 값 === undefined) continue;
+    것.setAttribute(키, 값);
+  }
+  if (부모) 부모.appendChild(것);
+  return 것;
+}
+
+function 요소(태그, 반, 글) {
+  const 것 = document.createElement(태그);
+  if (반) 것.className = 반;
+  if (글 !== undefined) 것.textContent = 글;
+  return 것;
+}
+
+// 사용자가 '동작 줄이기'를 켜 두었으면 반짝임을 생략한다.
+function 움직임줄이기() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+// :focus-visible을 모르는 구형 기기에서는 matches()가 예외를 던진다 —
+// 그 경우 초점이 오면 항상 테를 보인다(지킬 선: 오류 없이, 테는 보이게).
+let 초점가림지원 = true;
+try { document.querySelector(':focus-visible'); } catch (e) { 초점가림지원 = false; }
+function 초점달기(단추) {
+  단추.addEventListener('focus', () => {
+    단추.classList.toggle('초점', 초점가림지원 ? 단추.matches(':focus-visible') : true);
+  });
+  단추.addEventListener('blur', () => 단추.classList.remove('초점'));
+}
+
+// 받침에 따라 조사를 고른다. 예) 조사('병원', '으로', '로') → '으로'
+// '으로/로'는 ㄹ받침이 예외다 — 퇴근길로(O), 퇴근길으로(X).
+function 조사(낱말, 받침있을때, 받침없을때) {
+  const 끝글자 = String(낱말).trim().slice(-1);
+  const 코드 = 끝글자.charCodeAt(0);
+  if (코드 < 0xac00 || 코드 > 0xd7a3) return 받침없을때;
+  const 받침 = (코드 - 0xac00) % 28;
+  if (받침 === 8 && 받침있을때 === '으로') return 받침없을때;
+  return 받침 ? 받침있을때 : 받침없을때;
+}
+
+// ── 무늬 조각 ────────────────────────────────────────────────────────
+// 30 단위 네모 한 장. 플라스틱만 무늬 없이 테두리로 남는다(▢ 빈칸).
+function 무늬만들기(종류, 크기) {
+  const svg = svg요소('svg', {
+    viewBox: '0 0 30 30', width: 크기, height: 크기, 'aria-hidden': 'true',
+  });
+  svg요소('rect', { x: 1.2, y: 1.2, width: 27.6, height: 27.6, rx: 5, class: '무늬바탕' }, svg);
+  const 무늬 = 무늬표[종류];
+  // 마름모만 되풀이 무늬가 아니라 큰 도형 하나다 — 45° 격자를 되풀이하면
+  // 촘촘빗금(▩)과 30px에서 구별되지 않는다. 지킬 선이 짚은 자리다.
+  if (무늬 === '마름모') {
+    svg요소('path', {
+      d: 'M15 4 L26 15 L15 26 L4 15 Z', class: '무늬줄', 'stroke-width': 2.6,
+    }, svg);
+  } else if (무늬 !== '빈칸') {
+    svg요소('rect', {
+      x: 2.4, y: 2.4, width: 25.2, height: 25.2, rx: 4,
+      class: '무늬칠', fill: `url(#무늬-${무늬})`,
+    }, svg);
+  }
+  return svg;
+}
+
+function 갈래쪽(정답, 이름표) {
+  const 묶음 = 요소('span', '갈래쪽');
+  if (이름표) 묶음.appendChild(요소('span', '잔', 이름표));
+  const 딱지 = 요소('span', `갈래 ${정답 === '재활용' ? '재활용' : '일반'}`,
+    정답 === '재활용' ? '♻\uFE0E' : '■');
+  딱지.setAttribute('role', 'img');
+  딱지.setAttribute('aria-label', 정답 === '재활용' ? '재활용' : '일반 쓰레기');
+  묶음.appendChild(딱지);
+  return { 묶음, 딱지 };
+}
+
+const 화면 = {
+  맞힌수글: document.getElementById('맞힌수글'),
+  담은수글: document.getElementById('담은수글'),
+  칸수글: document.getElementById('칸수글'),
+  바뀐수글: document.getElementById('바뀐수글'),
+  종류표몸: document.getElementById('종류표몸'),
+  담는칸: document.getElementById('담는칸'),
+  상태줄: document.getElementById('상태줄'),
+  창고격자: document.getElementById('창고격자'),
+  세상격자: document.getElementById('세상격자'),
+  칸수6: document.getElementById('칸수6'),
+  칸수24: document.getElementById('칸수24'),
+};
+
+// ── 종류별 표 (5줄) ──────────────────────────────────────────────────
+// 무늬 ↔ 종류 이름을 이어 주는 자리이기도 하다 — 그래서 창고·세상 카드에는
+// 종류 이름을 글자로 적지 않는다(▥를 눈으로 가려내는 것이 활동 3이다).
+const 표줄들 = {};
+for (const 종류 of 종류목록) {
+  const 줄 = 요소('tr');
+  const 무늬칸 = 요소('td', '표무늬');
+  무늬칸.appendChild(무늬만들기(종류, 24));
+  const 이름칸 = 요소('th', null, 종류);
+  이름칸.setAttribute('scope', 'row');
+  const 값칸 = 요소('td', '표값');
+  줄.append(무늬칸, 이름칸, 값칸);
+  화면.종류표몸.appendChild(줄);
+  표줄들[종류] = { 줄, 값칸 };
+}
+
+// ── 창고 카드 24장 ───────────────────────────────────────────────────
+// 한 번만 만들고 이후에는 표시만 바꾼다 — 다시 그리면 담고 뺄 때마다 키보드
+// 초점이 사라진다(지킬 선).
+const 창고칸참조 = {};
+for (const 카드 of 창고카드) {
+  const 단추 = 요소('button', '카드 창고카드');
+  단추.type = 'button';
+  단추.setAttribute('aria-pressed', 'false');
+  const 머리 = 요소('span', '카드머리');
+  머리.appendChild(무늬만들기(카드.종류, 30));
+  머리.appendChild(요소('span', '틈'));
+  const 담김표 = 요소('span', '담김표', '✓');
+  담김표.style.display = 'none';
+  머리.appendChild(담김표);
+  머리.appendChild(갈래쪽(카드.정답, null).묶음);
+  단추.append(머리, 요소('span', '이름', 카드.이름),
+    요소('span', '얼룩', 카드.상태 === '묻음' ? '● 묻음' : ''));
+  단추.addEventListener('click', () => 창고누르기(카드));
+  초점달기(단추);
+  화면.창고격자.appendChild(단추);
+  창고칸참조[카드.번호] = { 단추, 담김표 };
+}
+
+// ── 세상 카드 20개 ───────────────────────────────────────────────────
+// 정답은 항상 보이고, 기계의 판정이 그 아래에 따로 붙는다(검수 22).
+// 01은 진짜 경계를 숨겼지만 이 단원은 반대다 — 축이 「무엇을 물려받았는가」라서
+// 잴 기준이 화면에 있어야 한다.
+const 세상칸참조 = {};
+for (const 카드 of 세상카드) {
+  const 칸 = 요소('div', '카드 세상카드');
+  칸.appendChild(요소('span', '숨김', `${카드.종류} ${카드.상태}`));
+  const 머리 = 요소('span', '카드머리');
+  머리.appendChild(무늬만들기(카드.종류, 30));
+  머리.appendChild(요소('span', '틈'));
+  머리.appendChild(갈래쪽(카드.정답, '정답').묶음);
+  const 기계줄 = 요소('span', '기계줄');
+  기계줄.appendChild(요소('span', '잔', '기계'));
+  const 기계딱지 = 요소('span', '갈래 없음', '—');
+  기계딱지.setAttribute('role', 'img');
+  기계딱지.setAttribute('aria-label', '아직 판정 없음');
+  const 틀림표 = 요소('span', '틀림표', '✗');
+  틀림표.setAttribute('role', 'img');
+  틀림표.setAttribute('aria-label', '정답과 다름');
+  틀림표.style.display = 'none';
+  기계줄.append(기계딱지, 틀림표);
+  칸.append(머리, 요소('span', '이름', 카드.이름),
+    요소('span', '얼룩', 카드.상태 === '묻음' ? '● 묻음' : ''), 기계줄);
+  화면.세상격자.appendChild(칸);
+  세상칸참조[카드.번호] = { 칸, 기계딱지, 틀림표 };
+}
+
+// ── 조작 상태 ────────────────────────────────────────────────────────
+let 담은번호들 = [];
+let 칸수 = 6;
+const 이력 = [];
+let 이전칸들 = null;    // 직전 판정 — 「방금 바뀐 카드」와 강조에 쓴다
+
+function 이력담기() { 이력.push(JSON.stringify(담은번호들)); }
+function 상태알림(글) { 화면.상태줄.textContent = 글; }
+// 눌렀지만 아무 일도 일어나지 않았을 때 — 「방금 바뀐 카드」를 0으로 되돌린다.
+// 직전 값이 남아 있으면 학생이 안 바뀐 것을 바뀐 것으로 읽는다(검수 16).
+function 안바뀜() {
+  화면.바뀐수글.textContent = 담은번호들.length === 0 ? '—' : '0';
+}
+
+// ── 화면 갱신 ────────────────────────────────────────────────────────
+function 담는칸그리기() {
+  화면.담는칸.replaceChildren();
+  for (const 번호 of 담은번호들) {
+    const 카드 = 창고카드.find((c) => c.번호 === 번호);
+    const 단추 = 요소('button', '담긴');
+    단추.type = 'button';
+    단추.setAttribute('aria-label',
+      `${카드.이름} 빼기 — ${카드.종류} ${카드.상태}`);
+    단추.appendChild(무늬만들기(카드.종류, 22));
+    단추.appendChild(요소('span', '쪽이름',
+      (카드.상태 === '묻음' ? '●' : '') + 카드.이름));
+    단추.addEventListener('click', () => 빼기누르기(카드));
+    초점달기(단추);
+    화면.담는칸.appendChild(단추);
+  }
+  // 칸 수 24에서 빈 칸 24개를 그리면 계기판이 화면 밖으로 밀린다 —
+  // 6일 때만 빈 칸을 그리고, 24일 때는 남은 수를 한 줄로 알린다.
+  const 남은 = 칸수 - 담은번호들.length;
+  if (남은 > 0) {
+    if (칸수 <= 6) {
+      for (let i = 0; i < 남은; i++) 화면.담는칸.appendChild(요소('div', '빈칸', '빈 칸'));
+    } else {
+      화면.담는칸.appendChild(요소('div', '넘침알림', `빈 칸 ${남은}개`));
+    }
+  } else if (남은 < 0) {
+    화면.담는칸.appendChild(요소('div', '넘침알림',
+      `칸보다 ${-남은}장 많이 담겨 있어요 — 직접 빼 주세요.`));
+  }
+}
+
+function 전부갱신(조작있었나) {
+  const 담은카드들 = 담은카드들만들기(담은번호들);
+  const 결과 = 세상계산(담은카드들);
+  const 판정없음 = 결과.맞힌수 === null;
+
+  // 담은 것이 0장이면 셈이 성립하지 않아 「—」 — 맞힌 카드를 0/20으로 두면
+  // 활동 1의 출발점이 실패처럼 보인다(검수 4). 담은 칸만 숫자로 남는다.
+  화면.맞힌수글.textContent = 판정없음 ? '—' : 결과.맞힌수;
+  화면.담은수글.textContent = 담은번호들.length;
+  화면.칸수글.textContent = 칸수;
+  화면.바뀐수글.textContent = 판정없음 ? '—'
+    : (조작있었나 && 이전칸들 ? 판정차이수(이전칸들, 결과.칸들) : 0);
+
+  for (const 종류 of 종류목록) {
+    const { 줄, 값칸 } = 표줄들[종류];
+    값칸.replaceChildren();
+    if (판정없음) {
+      줄.classList.remove('영');
+      값칸.appendChild(요소('b', null, '—'));
+    } else {
+      const 몫 = 결과.종류별.find((칸) => 칸.종류 === 종류);
+      줄.classList.toggle('영', 몫.맞힌 === 0);
+      if (몫.맞힌 === 0) {
+        const 표 = 요소('span', '영표', '!');
+        표.setAttribute('role', 'img');
+        표.setAttribute('aria-label', '하나도 못 맞힘');
+        값칸.appendChild(표);
+      }
+      값칸.append(요소('b', null, String(몫.맞힌)), document.createTextNode(`/${몫.전체}`));
+    }
+  }
+
+  for (const 카드 of 창고카드) {
+    const { 단추, 담김표 } = 창고칸참조[카드.번호];
+    const 담김 = 담은번호들.includes(카드.번호);
+    단추.setAttribute('aria-pressed', 담김 ? 'true' : 'false');
+    담김표.style.display = 담김 ? '' : 'none';
+    단추.setAttribute('aria-label',
+      `${카드.이름}, ${카드.종류} ${카드.상태}, 정답 ${카드.정답 === '재활용' ? '재활용' : '일반 쓰레기'}`
+      + (담김 ? ' — 담김. 누르면 빠집니다' : ' — 누르면 담깁니다'));
+  }
+
+  const 바뀐칸들 = [];
+  결과.칸들.forEach((칸, i) => {
+    const { 칸: 요소칸, 기계딱지, 틀림표 } = 세상칸참조[칸.번호];
+    // 지난 번 강조는 여기서 지운다 — 안 지우면 표시가 쌓여, 다시 강조할 때
+    // 애니메이션이 처음부터 돌지 않는다.
+    요소칸.classList.remove('반짝');
+    기계딱지.className = 칸.판정 === null ? '갈래 없음'
+      : `갈래 ${칸.판정 === '재활용' ? '재활용' : '일반'}`;
+    기계딱지.textContent = 칸.판정 === null ? '—' : (칸.판정 === '재활용' ? '♻\uFE0E' : '■');
+    기계딱지.setAttribute('aria-label', 칸.판정 === null ? '아직 판정 없음'
+      : `기계 판정 ${칸.판정 === '재활용' ? '재활용' : '일반 쓰레기'}`);
+    const 틀림 = 칸.맞음 === false;
+    요소칸.classList.toggle('틀림', 틀림);
+    틀림표.style.display = 틀림 ? '' : 'none';
+    if (조작있었나 && 이전칸들 && 이전칸들[i].판정 !== 칸.판정) 바뀐칸들.push(요소칸);
+  });
+  // 강제 배치 계산은 카드마다가 아니라 한 번만 — 저사양 기기에서 20장을
+  // 하나씩 재는 것이 눈에 띄게 느리다.
+  if (바뀐칸들.length && !움직임줄이기()) {
+    void document.body.getBoundingClientRect();
+    for (const 요소칸 of 바뀐칸들) 요소칸.classList.add('반짝');
+  }
+  이전칸들 = 결과.칸들;
+
+  담는칸그리기();
+}
+
+// ── 조작 ─────────────────────────────────────────────────────────────
+// 창고 카드를 누르면 담기고, 담긴 카드를 다시 누르면 빠진다 — 담는 칸의
+// 카드와 같은 한 장이라 「담은 카드를 누른다」에 해당한다. 활동 2 ①이
+// 「◇묻음을 빼고 ▩깨끗을 담으라」고 카드를 지정하므로, 창고에서 찾은 카드를
+// 그 자리에서 뺄 수 없으면 그 대목에서 학생이 막힌다.
+function 창고누르기(카드) {
+  if (담은번호들.includes(카드.번호)) { 빼기누르기(카드); return; }
+  const 다음 = 담기(담은번호들, 카드.번호, 칸수);
+  if (다음 === 담은번호들) {
+    안바뀜();
+    상태알림(`담는 칸 ${칸수}개가 다 찼어요 — 먼저 한 장을 빼세요.`);
+    return;
+  }
+  이력담기();
+  담은번호들 = 다음;
+  전부갱신(true);
+  상태알림(`「${카드.이름}」${조사(카드.이름, '을', '를')} 담았어요. (담은 칸 ${담은번호들.length}/${칸수})`);
+}
+
+function 빼기누르기(카드) {
+  const 다음 = 빼기(담은번호들, 카드.번호);
+  if (다음 === 담은번호들) return;
+  이력담기();
+  담은번호들 = 다음;
+  전부갱신(true);
+  상태알림(`「${카드.이름}」${조사(카드.이름, '을', '를')} 뺐어요. (담은 칸 ${담은번호들.length}/${칸수})`);
+  // 담는 칸의 쪽지는 사라지므로 초점을 창고의 그 카드로 옮긴다(지킬 선).
+  창고칸참조[카드.번호].단추.focus();
+}
+
+function 칸수바꾸기(새칸수) {
+  if (새칸수 === 칸수) { 안바뀜(); 상태알림(`담는 칸은 이미 ${칸수}개예요.`); return; }
+  칸수 = 새칸수;
+  화면.칸수6.setAttribute('aria-pressed', 칸수 === 6 ? 'true' : 'false');
+  화면.칸수24.setAttribute('aria-pressed', 칸수 === 24 ? 'true' : 'false');
+  // 칸 수만 바뀌고 담긴 카드는 그대로다 — 넘쳐도 앱이 자동으로 빼지 않는다(검수 17).
+  전부갱신(false);
+  const 넘침 = 넘친수(담은번호들, 칸수);
+  상태알림(넘침 > 0
+    ? `담는 칸을 ${칸수}개로 바꿨어요 — ${넘침}장이 넘치니 직접 빼 주세요.`
+    : `담는 칸을 ${칸수}개로 바꿨어요. 담은 카드는 그대로예요.`);
+}
+
+function 전부담기누르기() {
+  const 다음 = 전부담기(담은번호들, 칸수);
+  if (다음 === 담은번호들) {
+    // 단추를 숨기거나 잠그지 않는다(단계 잠금 금지, 검수 18).
+    안바뀜();
+    상태알림(`칸이 ${칸수}개라 창고를 다 담을 수 없어요 — 담는 칸을 24개로 바꿔 보세요.`);
+    return;
+  }
+  이력담기();
+  담은번호들 = 다음;
+  전부갱신(true);
+  상태알림(`창고 ${담은번호들.length}장을 모두 담았어요.`);
+}
+
+function 하나되돌리기() {
+  if (이력.length === 0) { 안바뀜(); 상태알림('되돌릴 것이 없어요.'); return; }
+  담은번호들 = JSON.parse(이력.pop());
+  전부갱신(true);
+  상태알림(`한 번 되돌렸어요. (담은 칸 ${담은번호들.length}/${칸수})`);
+}
+
+function 처음으로() {
+  if (담은번호들.length === 0) { 안바뀜(); 상태알림('담은 것이 이미 없어요.'); return; }
+  이력담기();
+  담은번호들 = [];
+  전부갱신(true);
+  상태알림(`담은 것을 모두 비웠어요 — 담는 칸은 ${칸수}개 그대로예요.`);
+}
+
+화면.칸수6.addEventListener('click', () => 칸수바꾸기(6));
+화면.칸수24.addEventListener('click', () => 칸수바꾸기(24));
+document.getElementById('전부담기단추').addEventListener('click', 전부담기누르기);
+document.getElementById('되돌리기단추').addEventListener('click', 하나되돌리기);
+document.getElementById('처음으로단추').addEventListener('click', 처음으로);
+for (const 아이디 of ['칸수6', '칸수24', '전부담기단추', '되돌리기단추', '처음으로단추']) {
+  초점달기(document.getElementById(아이디));
+}
+
+// ── 시작 ─────────────────────────────────────────────────────────────
+전부갱신(false);
+상태알림('창고에서 카드를 눌러 담아 보세요. 담은 카드를 누르면 빠집니다.');
+</script>
+
+</body>
+</html>
