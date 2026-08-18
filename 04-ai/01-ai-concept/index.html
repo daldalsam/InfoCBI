@@ -12,7 +12,7 @@
   --정상: #1d4ed8;
   --정상바탕: #bfdbfe;
   --정상도장바탕: #93c5fd;
-  --모름바탕: #f1f5f9;
+  --모름바탕: #e2e8f0;   /* 흰 빈 칸과 갈라 보이게, 빗금(#475569)과 6.2:1 */
   --다툼바탕: #ede9fe;
   --먹: #0f172a;
   --회: #64748b;
@@ -69,18 +69,22 @@ button { cursor: pointer; }
 .도장테 { fill: none; stroke-width: 4; }
 .도장테.스팸 { stroke: var(--스팸); }
 .도장테.정상 { stroke: var(--정상); }
-.축글 { font-size: 13px; fill: var(--회); }
-.축이름 { font-size: 11px; fill: var(--회); }
+/* 15px(SVG 단위) — 320px에서 판이 0.686배로 줄 때 10px 이상으로 렌더되는
+   크기(lesson.md 「학생 기기에서 지킬 선」의 축 라벨 10px 기준). */
+.축글 { font-size: 15px; fill: var(--회); }
+.축이름 { font-size: 15px; fill: var(--회); }
 .잡기칸 { fill: transparent; cursor: pointer; touch-action: manipulation; }
 .잡기칸:focus { outline: none; }
 .초점테 { fill: none; stroke: var(--정상); stroke-width: 2.5; stroke-dasharray: 5 4; opacity: 0; pointer-events: none; }
 .초점테.보임 { opacity: .9; }
 
-/* 판정이 방금 바뀐 칸만 한 번 반짝 — 상시 반복 아님(lesson.md 「하지 않을 것」).
-   활동 2의 「바뀐 칸 세기」를 도우려는 표시다. */
-.반짝덮개 { fill: none; pointer-events: none; }
-.반짝덮개.반짝 { animation: 칸반짝 .9s ease-out; }
-@keyframes 칸반짝 { from { fill: rgba(245, 158, 11, .55); } to { fill: rgba(245, 158, 11, 0); } }
+/* 판정이 방금 바뀐 칸만 한 번 테두리로 강조 — 상시 반복 아님. 바탕을 덮지
+   않으므로 결과 색과 ▲·●가 그대로 보인다(lesson.md 「하지 않을 것」).
+   세는 것은 「방금 바뀐 칸」 숫자가 맡고 이 테두리는 보조다(검수 12) —
+   움직임 줄이기 설정으로 생략돼도 정보는 숫자에 남는다. */
+.반짝덮개 { fill: none; stroke: none; pointer-events: none; }
+.반짝덮개.반짝 { stroke-width: 4; animation: 칸반짝 .9s ease-out; }
+@keyframes 칸반짝 { from { stroke: rgba(180, 83, 9, .95); } to { stroke: rgba(180, 83, 9, 0); } }
 @media (prefers-reduced-motion: reduce) { .반짝덮개.반짝 { animation: none; } }
 
 /* ── 두 판의 조작부 ── */
@@ -101,8 +105,11 @@ button { cursor: pointer; }
   background: var(--먹); border: none; border-radius: 12px;
 }
 .규칙목록 { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+/* 규칙 문구는 활동 1의 본체 기록 — 320px에서 단추에 가려 잘리면 안 된다
+   (lesson.md 「학생 기기에서 지킬 선」). 자리가 없으면 문구가 줄을 바꾸고,
+   그래도 없으면 단추가 아랫줄로 내려간다. */
 .규칙목록 li {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px;
   background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
   padding: 6px 8px; font-size: 14px;
 }
@@ -110,10 +117,11 @@ button { cursor: pointer; }
 .규칙기호 { font-size: 15px; }
 .스팸글 { color: var(--스팸); }
 .정상글 { color: var(--정상); }
-.규칙말 { flex: 1; min-width: 0; word-break: keep-all; }
+.규칙말 { flex: 1 1 130px; min-width: 0; word-break: keep-all; }
 .내리기단추 {
-  min-height: 36px; padding: 2px 10px; font-size: 13px; font-weight: 600;
-  background: #fff; border: 1.5px solid var(--테두리); border-radius: 8px; white-space: nowrap;
+  min-height: 44px; padding: 2px 10px; font-size: 13px; font-weight: 600;
+  background: #fff; border: 1.5px solid var(--테두리); border-radius: 8px;
+  white-space: nowrap; margin-left: auto;
 }
 .누르기안내 { font-size: 13.5px; color: var(--회); margin: 0; }
 .되돌리기묶음 { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -136,11 +144,12 @@ button { cursor: pointer; }
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
+    <!-- 무늬와 바탕의 대비 3:1 이상(지킬 선) — 빗금 6.2:1, 교차빗금 6.0:1 -->
     <pattern id="빗금" width="8" height="8" patternUnits="userSpaceOnUse">
-      <path d="M-2 2 L2 -2 M0 8 L8 0 M6 10 L10 6" stroke="#94a3b8" stroke-width="1.8" fill="none"/>
+      <path d="M-2 2 L2 -2 M0 8 L8 0 M6 10 L10 6" stroke="#475569" stroke-width="1.8" fill="none"/>
     </pattern>
     <pattern id="교차빗금" width="8" height="8" patternUnits="userSpaceOnUse">
-      <path d="M-2 2 L2 -2 M0 8 L8 0 M6 10 L10 6 M-2 6 L2 10 M0 0 L8 8 M6 -2 L10 2" stroke="#8b5cf6" stroke-width="1.6" fill="none"/>
+      <path d="M-2 2 L2 -2 M0 8 L8 0 M6 10 L10 6 M-2 6 L2 10 M0 0 L8 8 M6 -2 L10 2" stroke="#6d28d9" stroke-width="1.6" fill="none"/>
     </pattern>
   </defs>
 </svg>
@@ -152,17 +161,19 @@ button { cursor: pointer; }
 
 <div class="붙는무리">
   <div class="붙는속">
-    <p class="계기판">두 판이 다른 칸: <b id="다른칸수글">0</b></p>
+    <p class="계기판">두 판이 다른 칸: <b id="다른칸수글">—</b></p>
     <div class="판무리">
       <section class="판쪽">
         <h2 class="판이름">A판 — 규칙 얹기</h2>
         <div class="격자" id="A격자"></div>
-        <p class="판숫자">회색 <b id="회색수글">16</b> · 다툼 <b id="다툼수글">0</b></p>
+        <p class="판숫자">회색 <b id="회색수글">16</b> · 다툼 <b id="다툼수글">0</b>
+          · 방금 바뀐 칸 <b id="A방금글">0</b></p>
       </section>
       <section class="판쪽">
         <h2 class="판이름">B판 — 예시 찍기</h2>
         <div class="격자" id="B격자"></div>
-        <p class="판숫자">찍은 예시 <b id="예시수글">0</b></p>
+        <p class="판숫자">찍은 예시 <b id="예시수글">0</b>
+          · 방금 바뀐 칸 <b id="B방금글">0</b></p>
       </section>
     </div>
     <p id="상태줄" class="상태줄" aria-live="polite"></p>
@@ -178,16 +189,18 @@ button { cursor: pointer; }
       <button id="얹기단추" class="얹기단추">얹기</button>
     </div>
     <ul class="규칙목록" id="규칙목록"></ul>
+    <!-- 어느 판의 단추인지 글자에 담는다 — aria-label만으로는 눈으로 보는
+         학생에게 전달되지 않는다(lesson.md 「학생 기기에서 지킬 선」) -->
     <div class="되돌리기묶음">
-      <button id="A되돌리기" class="보통단추" aria-label="A판 하나 되돌리기">↩ 하나 되돌리기</button>
-      <button id="A처음으로" class="보통단추" aria-label="A판 처음으로">↺ 처음으로</button>
+      <button id="A되돌리기" class="보통단추">↩ A판 하나 되돌리기</button>
+      <button id="A처음으로" class="보통단추">↺ A판 처음으로</button>
     </div>
   </div>
   <div class="조작쪽">
     <p class="누르기안내">칸을 누를 때마다 <b class="스팸글">▲ 스팸</b> → <b class="정상글">● 정상</b> → 지움</p>
     <div class="되돌리기묶음">
-      <button id="B되돌리기" class="보통단추" aria-label="B판 하나 되돌리기">↩ 하나 되돌리기</button>
-      <button id="B처음으로" class="보통단추" aria-label="B판 처음으로">↺ 처음으로</button>
+      <button id="B되돌리기" class="보통단추">↩ B판 하나 되돌리기</button>
+      <button id="B처음으로" class="보통단추">↺ B판 처음으로</button>
     </div>
   </div>
 </main>
@@ -199,7 +212,7 @@ button { cursor: pointer; }
 //
 // 격자는 4×4로 고정 — 320px에서 두 판이 나란히 서야 하는 검수 기준선에
 // 맞춘 크기다. 격자 크기나 규칙 선택지를 바꾸면 lesson.md 5번의
-// 「데이터가 지켜야 할 관계」 1~11을 검수 하네스로 전부 다시 확인할 것.
+// 「데이터가 지켜야 할 관계」 1~15를 검수 하네스로 전부 다시 확인할 것.
 
 const 값범위 = [0, 1, 2, 3];           // 링크·느낌표 두 축 공통
 const 축선택지 = ['링크', '느낌표'];
@@ -236,6 +249,13 @@ function 같은규칙인가(가, 나) {
     && 가.방향 === 나.방향 && 가.판정 === 나.판정;
 }
 
+// 같은 규칙은 두 번 얹을 수 없다(관계 15) — 겹치면 받은 배열을 그대로
+// 돌려준다. 화면은 반환값이 같은 배열인지로 겹침을 알아챈다.
+function 규칙얹기(규칙들, 새규칙) {
+  if (규칙들.some((r) => 같은규칙인가(r, 새규칙))) return 규칙들;
+  return [...규칙들, 새규칙];
+}
+
 // ── A판: 얹힌 규칙들로 16칸을 판정 ──────────────────────────────────
 // 스팸 규칙에만 걸리면 스팸, 정상 규칙에만 걸리면 정상,
 // 어느 규칙에도 안 걸리면 모름(회색), 양쪽에 다 걸리면 다툼(보라).
@@ -261,13 +281,20 @@ function A판계산(규칙들) {
 // ── B판: 찍힌 예시들로 16칸을 판정 ──────────────────────────────────
 // 예시가 하나도 없으면 모든 칸이 「빈」. 하나라도 있으면 모든 칸이
 // 가장 가까운 예시의 판정을 받는다 — 모름이 남지 않는 것이 이 판의
-// 성질이다(관계 6). 거리는 유클리드(제곱 비교)이고, 동점이면 순번이
-// 앞선(먼저 찍은) 예시를 따른다. 무작위 금지 — 같은 예시 집합이면
-// 언제나 같은 결과여야 한다(관계 8).
+// 성질이다(관계 6). 거리는 유클리드(제곱 비교)이고, 동점이면 느낌표가
+// 작은 예시, 느낌표도 같으면 링크가 작은 예시를 따른다(격자에서
+// 아래쪽 → 왼쪽, 관계 8). 무작위 금지, 찍은 순서와도 무관 — 같은 예시
+// 집합이면 언제나 같은 판이어야 한다. 순서에 기대면 「갈리는 칸 출제」
+// (규칙과 예시만 적는 기록)를 친구가 재현할 수 없다.
 function 거리제곱(칸, 예시) {
   const 링크차 = 칸.링크 - 예시.링크;
   const 느낌표차 = 칸.느낌표 - 예시.느낌표;
   return 링크차 * 링크차 + 느낌표차 * 느낌표차;
+}
+
+function 아래왼쪽인가(가, 나) {
+  return 가.느낌표 < 나.느낌표
+    || (가.느낌표 === 나.느낌표 && 가.링크 < 나.링크);
 }
 
 function B판계산(예시들) {
@@ -276,7 +303,7 @@ function B판계산(예시들) {
     let 최소 = Infinity;
     for (const 예시 of 예시들) {
       const 거리 = 거리제곱(칸, 예시);
-      if (거리 < 최소 || (거리 === 최소 && 예시.순번 < 고른것.순번)) {
+      if (거리 < 최소 || (거리 === 최소 && 아래왼쪽인가(예시, 고른것))) {
         최소 = 거리;
         고른것 = 예시;
       }
@@ -288,8 +315,9 @@ function B판계산(예시들) {
 
 // ── 예시 찍기 ────────────────────────────────────────────────────────
 // 같은 칸을 누를 때마다 없음 → 스팸 → 정상 → 없음 순서로 돈다.
-// 색이 바뀌면 새 순번을 받는다 — 「먼저 찍은 예시」는 지금 그 색을 찍은
-// 순간을 말한다. 원본 배열은 건드리지 않고 새 배열을 돌려준다(관계 9).
+// 찍은 순서는 어디에도 남기지 않는다 — 판정이 순서에 기대면 화면상
+// 똑같은 예시 집합이 서로 다른 판을 만든다(1차 검증에서 확인된 버그).
+// 원본 배열은 건드리지 않고 새 배열을 돌려준다(관계 9).
 const 찍기순환 = { 없음: '스팸', 스팸: '정상', 정상: '없음' };
 
 function 예시찍기(예시들, 링크, 느낌표) {
@@ -297,24 +325,38 @@ function 예시찍기(예시들, 링크, 느낌표) {
   const 다음판정 = 찍기순환[지금 ? 지금.판정 : '없음'];
   const 나머지 = 예시들.filter((e) => e !== 지금);
   if (다음판정 === '없음') return 나머지;
-  const 새순번 = 예시들.reduce((큰것, e) => Math.max(큰것, e.순번), 0) + 1;
-  return [...나머지, { 링크, 느낌표, 판정: 다음판정, 순번: 새순번 }];
+  return [...나머지, { 링크, 느낌표, 판정: 다음판정 }];
 }
 
 // ── 두 판이 다른 칸 ──────────────────────────────────────────────────
-// A판의 모름(회색)과 B판의 빈 칸은 「말이 없다」는 점에서 같은 것으로
-// 센다 — 규칙 0개·예시 0개의 출발점이 「둘 다 아무 말도 하지 않는」 같은
-// 상태이기 때문(lesson.md 5번 극단값). 다툼은 말이 없는 게 아니라 두 말이
-// 부딪힌 것이라 어느 쪽 판정과도 같지 않다.
+// 예시가 0개면 B판에 판정이 없어 셈이 성립하지 않는다 — 다른칸수를
+// null로 돌려주고 화면은 `—`를 보인다(관계 13). 0으로 셈하면 활동 3의
+// 목표(다른 칸 0)가 시작부터 충족된 것처럼 보인다.
+// 예시가 있으면 판정 문자열이 다른 칸을 전부 센다 — A판의 모름(회색)과
+// 다툼(보라)은 어느 색과도 같지 않으므로 그 칸은 언제나 다른 칸이다(관계 14).
 function 다른칸계산(A칸들, B칸들) {
+  if (B칸들.some((c) => c.판정 === '빈')) {
+    return { 다른칸들: [], 다른칸수: null };
+  }
   const 다른칸들 = [];
   for (let i = 0; i < A칸들.length; i++) {
-    const 가 = A칸들[i].판정;
-    const 나 = B칸들[i].판정;
-    const 같음 = 가 === 나 || (가 === '모름' && 나 === '빈');
-    if (!같음) 다른칸들.push({ 링크: A칸들[i].링크, 느낌표: A칸들[i].느낌표 });
+    if (A칸들[i].판정 !== B칸들[i].판정) {
+      다른칸들.push({ 링크: A칸들[i].링크, 느낌표: A칸들[i].느낌표 });
+    }
   }
   return { 다른칸들, 다른칸수: 다른칸들.length };
+}
+
+// ── 방금 바뀐 칸 ─────────────────────────────────────────────────────
+// 직전 조작 한 번으로 판정이 바뀐 칸 수(관계 12). 학습지 활동 2가 이
+// 숫자를 옮겨 적으므로, 학생이 반짝임을 눈으로 세게 하지 않는다.
+// 두 목록은 칸목록() 순서를 공유한다는 전제다.
+function 판정차이수(전칸들, 새칸들) {
+  let 수 = 0;
+  for (let i = 0; i < 새칸들.length; i++) {
+    if (전칸들[i].판정 !== 새칸들[i].판정) 수++;
+  }
+  return 수;
 }
 // [엔진 끝]
 </script>
@@ -338,6 +380,14 @@ function 움직임줄이기() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+// :focus-visible을 모르는 구형 기기에서는 matches()가 예외를 던진다 —
+// 그 경우 초점이 오면 항상 테를 보인다(지킬 선: 오류 없이, 테는 보이게).
+let 초점가림지원 = true;
+try { document.querySelector(':focus-visible'); } catch (e) { 초점가림지원 = false; }
+function 초점테보일까(요소) {
+  return 초점가림지원 ? 요소.matches(':focus-visible') : true;
+}
+
 // 받침에 따라 조사를 고른다. 예) 조사('병원', '으로', '로') → '으로'
 // '으로/로'는 ㄹ받침이 예외다 — 퇴근길로(O), 퇴근길으로(X).
 function 조사(낱말, 받침있을때, 받침없을때) {
@@ -350,9 +400,10 @@ function 조사(낱말, 받침있을때, 받침없을때) {
 }
 
 // ── 격자 그리기 ──────────────────────────────────────────────────────
-// 한 칸 44, 왼쪽 띠(느낌표 숫자·이름) 30, 아래 띠(링크 숫자·이름) 32.
-// 320px 화면에서 두 판이 나란히 설 때 한 칸이 30px 안팎이 되는 크기다.
-const 칸크기 = 44, 왼띠 = 30, 위띠 = 4, 오른띠 = 4, 아래띠 = 32;
+// 한 칸 44, 왼쪽 띠(느낌표 숫자·이름) 30, 아래 띠(링크 숫자·이름) 37.
+// 판 너비 210 — 320px 화면에서 두 판이 나란히 설 때 0.686배가 되어
+// 한 칸 30px 이상, 축 글자(15px 단위) 10px 이상이 나온다(지킬 선).
+const 칸크기 = 44, 왼띠 = 30, 위띠 = 4, 오른띠 = 4, 아래띠 = 37;
 const 판너비 = 왼띠 + 4 * 칸크기 + 오른띠;
 const 판높이 = 위띠 + 4 * 칸크기 + 아래띠;
 
@@ -367,16 +418,16 @@ function 판만들기(붙일곳, 종류) {
 
   for (const 값 of 값범위) {
     svg요소('text', {
-      x: 왼띠 - 6, y: 위띠 + (3 - 값) * 칸크기 + 칸크기 / 2 + 4.5,
+      x: 왼띠 - 6, y: 위띠 + (3 - 값) * 칸크기 + 칸크기 / 2 + 5,
       class: '축글', 'text-anchor': 'end',
     }, svg).textContent = 값;
     svg요소('text', {
-      x: 왼띠 + 값 * 칸크기 + 칸크기 / 2, y: 위띠 + 4 * 칸크기 + 15,
+      x: 왼띠 + 값 * 칸크기 + 칸크기 / 2, y: 위띠 + 4 * 칸크기 + 16,
       class: '축글', 'text-anchor': 'middle',
     }, svg).textContent = 값;
   }
   svg요소('text', {
-    x: 왼띠 + 2 * 칸크기, y: 위띠 + 4 * 칸크기 + 29,
+    x: 왼띠 + 2 * 칸크기, y: 위띠 + 4 * 칸크기 + 33,
     class: '축이름', 'text-anchor': 'middle',
   }, svg).textContent = '링크 개수';
   svg요소('text', {
@@ -403,7 +454,7 @@ function 판만들기(붙일곳, 종류) {
       잡기.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); 칸찍기(링크, 느낌표); }
       });
-      잡기.addEventListener('focus', () => 초점테.classList.toggle('보임', 잡기.matches(':focus-visible')));
+      잡기.addEventListener('focus', () => 초점테.classList.toggle('보임', 초점테보일까(잡기)));
       잡기.addEventListener('blur', () => 초점테.classList.remove('보임'));
     }
     칸참조[`${링크},${느낌표}`] = { 바탕, 무늬, 세모, 동그라미, 도장테, 반짝덮개, 잡기 };
@@ -416,6 +467,8 @@ const 화면 = {
   회색수글: document.getElementById('회색수글'),
   다툼수글: document.getElementById('다툼수글'),
   예시수글: document.getElementById('예시수글'),
+  A방금글: document.getElementById('A방금글'),
+  B방금글: document.getElementById('B방금글'),
   규칙목록: document.getElementById('규칙목록'),
   상태줄: document.getElementById('상태줄'),
   축고르기: document.getElementById('축고르기'),
@@ -431,7 +484,7 @@ const B판 = 판만들기(document.getElementById('B격자'), 'B');
 let 규칙들 = [];
 let 예시들 = [];
 const 이력 = { A: [], B: [] };
-let 이전A판정 = null, 이전B판정 = null;   // 첫 그리기에서는 반짝이지 않는다
+let 이전A칸들 = null, 이전B칸들 = null;   // 직전 판 상태 — 방금 바뀐 칸·강조용
 
 function 이력담기(판) {
   이력[판].push(JSON.stringify(판 === 'A' ? 규칙들 : 예시들));
@@ -485,35 +538,45 @@ function 규칙목록그리기() {
   }
 }
 
-function 전부갱신(반짝) {
+// 조작판: 'A'|'B' — 이번 갱신을 일으킨 조작이 어느 판의 것인지.
+// 「방금 바뀐 칸」은 그 판의 직전 조작 기준이라(검수 12) 조작한 판의
+// 숫자만 갱신하고, 강조 테두리도 그 판에만 두른다.
+function 전부갱신(조작판) {
   const A = A판계산(규칙들);
   const B = B판계산(예시들);
   const 다른 = 다른칸계산(A.칸들, B.칸들);
 
-  화면.다른칸수글.textContent = 다른.다른칸수;
+  // 예시가 0개면 셈이 성립하지 않아 —(검수 13)
+  화면.다른칸수글.textContent = 다른.다른칸수 === null ? '—' : 다른.다른칸수;
   화면.회색수글.textContent = A.모름수;
   화면.다툼수글.textContent = A.다툼수;
   화면.예시수글.textContent = B.예시수;
+  if (조작판 === 'A' && 이전A칸들) 화면.A방금글.textContent = 판정차이수(이전A칸들, A.칸들);
+  if (조작판 === 'B' && 이전B칸들) 화면.B방금글.textContent = 판정차이수(이전B칸들, B.칸들);
 
   A.칸들.forEach((칸, i) => {
     const 참조 = A판.칸참조[`${칸.링크},${칸.느낌표}`];
     칸그리기(참조, 칸.판정, null);
-    if (반짝 && 이전A판정 && 이전A판정[i] !== 칸.판정 && !움직임줄이기()) 반짝이기(참조.반짝덮개);
+    if (조작판 === 'A' && 이전A칸들 && 이전A칸들[i].판정 !== 칸.판정 && !움직임줄이기()) {
+      반짝이기(참조.반짝덮개);
+    }
   });
-  이전A판정 = A.칸들.map((c) => c.판정);
+  이전A칸들 = A.칸들;
 
   B.칸들.forEach((칸, i) => {
     const 참조 = B판.칸참조[`${칸.링크},${칸.느낌표}`];
     const 예시 = 예시들.find((e) => e.링크 === 칸.링크 && e.느낌표 === 칸.느낌표) ?? null;
     칸그리기(참조, 칸.판정, 예시 ? 예시.판정 : null);
-    if (반짝 && 이전B판정 && 이전B판정[i] !== 칸.판정 && !움직임줄이기()) 반짝이기(참조.반짝덮개);
+    if (조작판 === 'B' && 이전B칸들 && 이전B칸들[i].판정 !== 칸.판정 && !움직임줄이기()) {
+      반짝이기(참조.반짝덮개);
+    }
     참조.잡기.setAttribute('aria-label',
       `링크 ${칸.링크}개 느낌표 ${칸.느낌표}개 문자 — `
       + (예시 ? `내가 찍은 ${예시.판정} 예시`
         : 칸.판정 === '빈' ? '빈 칸'
         : `${칸.판정}${조사(칸.판정, '으로', '로')} 칠해짐`));
   });
-  이전B판정 = B.칸들.map((c) => c.판정);
+  이전B칸들 = B.칸들;
 
   A판.svg.setAttribute('aria-label',
     `A판: 회색 ${A.모름수}칸, 다툼 ${A.다툼수}칸, 스팸 ${A.스팸수}칸, 정상 ${A.정상수}칸`);
@@ -521,31 +584,37 @@ function 전부갱신(반짝) {
 }
 
 // ── 조작 ─────────────────────────────────────────────────────────────
-function 규칙얹기() {
+function 규칙얹기시도() {
   const 고른 = 개수방향선택지[Number(화면.개수방향고르기.value)];
   const 새규칙 = { 축: 화면.축고르기.value, 개수: 고른.개수, 방향: 고른.방향, 판정: 화면.판정고르기.value };
-  if (규칙들.some((r) => 같은규칙인가(r, 새규칙))) {
+  const 다음 = 규칙얹기(규칙들, 새규칙);   // 겹치면 같은 배열이 돌아온다(검수 15)
+  if (다음 === 규칙들) {
     상태알림('똑같은 규칙이 이미 얹혀 있어요.');
     return;
   }
   이력담기('A');
-  규칙들 = [...규칙들, 새규칙];
-  전부갱신(true);
+  규칙들 = 다음;
+  전부갱신('A');
   상태알림(`규칙을 얹었어요 — ${규칙글(새규칙)}.`);
 }
 
 function 규칙내리기(규칙) {
+  const 자리 = 규칙들.indexOf(규칙);
   이력담기('A');
   규칙들 = 규칙들.filter((r) => r !== 규칙);
-  전부갱신(true);
+  전부갱신('A');
   상태알림(`규칙을 내렸어요 — ${규칙글(규칙)}.`);
+  // 초점이 사라지지 않게 — 다음 규칙의 내리기 단추, 없으면 얹기 단추로(지킬 선)
+  const 남은단추 = 화면.규칙목록.querySelectorAll('.내리기단추');
+  if (남은단추.length > 0) 남은단추[Math.min(자리, 남은단추.length - 1)].focus();
+  else document.getElementById('얹기단추').focus();
 }
 
 function 칸찍기(링크, 느낌표) {
   이력담기('B');
   const 전 = 예시들.find((e) => e.링크 === 링크 && e.느낌표 === 느낌표)?.판정 ?? '없음';
   예시들 = 예시찍기(예시들, 링크, 느낌표);
-  전부갱신(true);
+  전부갱신('B');
   const 이름 = `(링크 ${링크}·느낌표 ${느낌표})`;
   if (전 === '없음') 상태알림(`${이름} 칸에 스팸 ▲ 예시를 찍었어요.`);
   else if (전 === '스팸') 상태알림(`${이름} 칸을 정상 ● 예시로 바꿨어요.`);
@@ -556,7 +625,7 @@ function 하나되돌리기(판) {
   if (이력[판].length === 0) { 상태알림(`${판}판에서 되돌릴 것이 없어요.`); return; }
   const 지난 = JSON.parse(이력[판].pop());
   if (판 === 'A') 규칙들 = 지난; else 예시들 = 지난;
-  전부갱신(true);
+  전부갱신(판);
   상태알림(`${판}판을 한 번 되돌렸어요.`);
 }
 
@@ -565,11 +634,11 @@ function 처음으로(판) {
   if (비었나) { 상태알림(`${판}판은 이미 비어 있어요.`); return; }
   이력담기(판);
   if (판 === 'A') 규칙들 = []; else 예시들 = [];
-  전부갱신(true);
+  전부갱신(판);
   상태알림(판 === 'A' ? 'A판을 처음으로 되돌렸어요 — 규칙 0개.' : 'B판을 처음으로 되돌렸어요 — 예시 0개.');
 }
 
-document.getElementById('얹기단추').addEventListener('click', 규칙얹기);
+document.getElementById('얹기단추').addEventListener('click', 규칙얹기시도);
 document.getElementById('A되돌리기').addEventListener('click', () => 하나되돌리기('A'));
 document.getElementById('A처음으로').addEventListener('click', () => 처음으로('A'));
 document.getElementById('B되돌리기').addEventListener('click', () => 하나되돌리기('B'));
@@ -598,7 +667,7 @@ for (const 판정 of 판정선택지) {
 }
 화면.개수방향고르기.value = '1';   // 「2개 이상」이 처음에 보이게
 
-전부갱신(false);
+전부갱신(null);
 상태알림('A판 아래에서 규칙을 얹고, B판은 칸을 눌러 예시를 찍어 보세요.');
 </script>
 
