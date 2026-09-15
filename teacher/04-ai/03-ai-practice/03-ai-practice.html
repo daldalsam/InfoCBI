@@ -91,6 +91,12 @@
     padding: 22px 22px 18px; scroll-margin-top: 56px;
   }
   .lesson h2 { margin: 0 0 2px; font-size: 19px; letter-spacing: -0.01em; }
+  .lesson > summary { cursor: pointer; list-style: none; }
+  .lesson > summary::-webkit-details-marker { display: none; }
+  .lesson > summary h2::before { content: "▶"; display: inline-block; margin-right: 8px; font-size: 13px; transition: transform .15s ease; }
+  .lesson[open] > summary h2::before { transform: rotate(90deg); }
+  .lesson > summary h2 { margin-bottom: 0; }
+  .lesson[open] > summary { margin-bottom: 12px; }
   .lesson .sub { color: var(--dim); font-size: 14px; margin: 0 0 14px; }
   h3 { margin: 20px 0 8px; font-size: 15px; color: var(--accent); }
   .foldbody > h3:first-child { margin-top: 16px; }
@@ -536,8 +542,8 @@
 
 
   <!-- ═══════════ 1차시 ═══════════ -->
-  <div class="lesson" id="l1">
-    <h2>1차시 — 내 몸으로 가르치기 (사진 프로젝트)</h2>
+  <details class="lesson" id="l1">
+    <summary><h2>1차시 — 내 몸으로 가르치기 (사진 프로젝트)</h2></summary>
     <p class="sub"><b>수업 목표:</b> 사진으로 학습한 인공지능이 동작뿐 아니라
       사람과 배경의 특징도 함께 학습할 수 있음을 관찰한다.<br>
       사진의 공통점 찾기 → 동작 두 가지 학습시키기 → 나·짝·빈 자리로 시험하기 →
@@ -629,12 +635,12 @@
         내려받기</a> — 구글 문서로 배부할 때 <b>학생별 사본 제공</b>을 선택합니다.
         이 학습지는 2차시에도 이어서 사용하므로 아직 제출하지 않습니다.</p>
     </div>
-  </div>
+  </details>
 
 
   <!-- ═══════════ 2차시 ═══════════ -->
-  <div class="lesson" id="l2">
-    <h2>2차시 — 짝까지 넣어 고치기 (사진 프로젝트)</h2>
+  <details class="lesson" id="l2">
+    <summary><h2>2차시 — 짝까지 넣어 고치기 (사진 프로젝트)</h2></summary>
     <p class="sub"><b>수업 목표:</b> 학습 데이터에 다른 사람의 사진을 추가하면
       결과가 좋아질 수 있지만, 사람·옷·거리·배경이 달라지면 여전히 판단이
       흔들릴 수 있음을 설명한다.<br>
@@ -722,12 +728,12 @@
       </div>
       <p>2차시 학습지는 따로 없습니다. 1차시 학습지의 뒷면을 이어서 사용합니다.</p>
     </div>
-  </div>
+  </details>
 
 
   <!-- ═══════════ 3차시 ═══════════ -->
-  <div class="lesson" id="l3">
-    <h2>3차시 — 모션으로 다시 만들어 비교하기</h2>
+  <details class="lesson" id="l3">
+    <summary><h2>3차시 — 모션으로 다시 만들어 비교하기</h2></summary>
     <p class="sub"><b>수업 목표:</b> 사진 모델과 모션 모델이 서로 다른 특징을
       보고 판단하며, 어느 방식에도 한계가 있음을 설명한다.<br>
       모션 모델 만들기 → 사진 모델과 결과 비교하기 → ‘모르겠다’ 클래스 추가하기 →
@@ -831,12 +837,12 @@
       <p><a href="worksheet-04-03-ai-practice-lesson3.docx" download>3차시 학습지
         내려받기</a> — 도입에서 배부하고 앞 차시 학습지와 함께 사용합니다.</p>
     </div>
-  </div>
+  </details>
 
 
   <!-- ═══════════ 4차시 ═══════════ -->
-  <div class="lesson" id="l4">
-    <h2>4차시 — 학습 결과를 설명하고 적용하기</h2>
+  <details class="lesson" id="l4">
+    <summary><h2>4차시 — 학습 결과를 설명하고 적용하기</h2></summary>
     <p class="sub"><b>수업 목표:</b> 인공지능이 학습 데이터와 사람이 정한 입력
       방식에 따라 서로 다른 특징을 학습한다는 것을 설명하고 생활 속 사례에
       적용한다.<br>
@@ -927,7 +933,7 @@
       <p>앞 차시에서 사용한 학습지 두 장은 이 차시 끝에 제출합니다. 4차시
         학습지는 따로 없습니다.</p>
     </div>
-  </div>
+  </details>
 
 </div>
 
@@ -936,5 +942,13 @@
   원본은 <code>04-ai/03-ai-practice/lesson.md</code>이며 이 페이지는 사본입니다.
 </footer>
 
+<script>
+  document.querySelectorAll('.jump a[href^="#l"]').forEach(link => {
+    link.addEventListener('click', () => {
+      const lesson = document.querySelector(link.getAttribute('href'));
+      if (lesson) lesson.open = true;
+    });
+  });
+</script>
 </body>
 </html>

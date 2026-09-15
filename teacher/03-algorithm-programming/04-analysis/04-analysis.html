@@ -159,6 +159,12 @@
     scroll-margin-top: 56px;
   }
   .lesson h2 { margin: 0 0 2px; font-size: 19px; letter-spacing: -0.01em; }
+  .lesson > summary { cursor: pointer; list-style: none; }
+  .lesson > summary::-webkit-details-marker { display: none; }
+  .lesson > summary h2::before { content: "▶"; display: inline-block; margin-right: 8px; font-size: 13px; transition: transform .15s ease; }
+  .lesson[open] > summary h2::before { transform: rotate(90deg); }
+  .lesson > summary h2 { margin-bottom: 0; }
+  .lesson[open] > summary { margin-bottom: 12px; }
   .lesson .sub { color: var(--dim); font-size: 14px; margin: 0 0 14px; }
 
   h3 { margin: 20px 0 8px; font-size: 15px; color: var(--accent); }
@@ -437,8 +443,8 @@
 
 
   <!-- ═══════════ 1차시 ═══════════ -->
-  <div class="lesson" id="l1">
-    <h2>1차시 — 재 보고 이겨 보기</h2>
+  <details class="lesson" id="l1">
+    <summary><h2>1차시 — 재 보고 이겨 보기</h2></summary>
     <p class="sub">지난 시간 대본 비교 → 차 두 대 재기 → 차보다 잘 가 보기 →
       시간대 바꾸기 · 준비물: 학생 기기, 앱 주소, 1차시 학습지, 칠판</p>
 
@@ -600,12 +606,12 @@
       <p>2차시에는 별도 학습지 없이 1차시 학습지의 「(다음 시간)」 칸과
         패들렛을 사용합니다.</p>
     </div>
-  </div>
+  </details>
 
 
   <!-- ═══════════ 2차시 ═══════════ -->
-  <div class="lesson" id="l2">
-    <h2>2차시 — 이름 붙이고 자리 잡기</h2>
+  <details class="lesson" id="l2">
+    <summary><h2>2차시 — 이름 붙이고 자리 잡기</h2></summary>
     <p class="sub">모둠 공유 → 일반화 → 용어 연결 → 단원 정리 → 다른 상황에
       적용하기 · 준비물: 1차시 학습지, 패들렛, 교과서, 클래스룸 과제(질문 3)</p>
 
@@ -751,7 +757,7 @@
           “함정” 문장이 따로 나오면 둘 다 고정합니다(일반화 1·2)</li>
       </ul>
     </div>
-  </div>
+  </details>
 
 </div>
 
@@ -759,5 +765,13 @@
   이 페이지는 비밀번호가 없어 주소를 아는 사람은 누구나 볼 수 있습니다.
 </footer>
 
+<script>
+  document.querySelectorAll('.jump a[href^="#l"]').forEach(link => {
+    link.addEventListener('click', () => {
+      const lesson = document.querySelector(link.getAttribute('href'));
+      if (lesson) lesson.open = true;
+    });
+  });
+</script>
 </body>
 </html>

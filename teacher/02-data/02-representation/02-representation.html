@@ -150,6 +150,12 @@
     scroll-margin-top: 56px;
   }
   .lesson h2 { margin: 0 0 2px; font-size: 19px; letter-spacing: -0.01em; }
+  .lesson > summary { cursor: pointer; list-style: none; }
+  .lesson > summary::-webkit-details-marker { display: none; }
+  .lesson > summary h2::before { content: "▶"; display: inline-block; margin-right: 8px; font-size: 13px; transition: transform .15s ease; }
+  .lesson[open] > summary h2::before { transform: rotate(90deg); }
+  .lesson > summary h2 { margin-bottom: 0; }
+  .lesson[open] > summary { margin-bottom: 12px; }
   .lesson .sub { color: var(--dim); font-size: 14px; margin: 0 0 14px; }
 
   h3 { margin: 20px 0 8px; font-size: 15px; color: var(--accent); }
@@ -351,8 +357,8 @@
 
 
   <!-- ═══════════ 1차시 ═══════════ -->
-  <div class="lesson" id="l1">
-    <h2>1차시 — 같은 격자, 다른 해석</h2>
+  <details class="lesson" id="l1">
+    <summary><h2>1차시 — 같은 격자, 다른 해석</h2></summary>
     <p class="sub">관계 맺기 → 조사하기(앱) → 발견 기록 · 준비물: 학생 기기,
       앱 주소, 깨진 글자 스크린샷, 01에서 쓴 확대 사진, 클래스룸 과제(질문 1~2),
       패들렛 1개(아래 제작 가이드)</p>
@@ -483,12 +489,12 @@
         <li>수업 후에도 지우지 말 것 — 2차시 토론에서 다시 띄웁니다</li>
       </ul>
     </div>
-  </div>
+  </details>
 
 
   <!-- ═══════════ 2차시 ═══════════ -->
-  <div class="lesson" id="l2">
-    <h2>2차시 — 약속에 이름 붙이기</h2>
+  <details class="lesson" id="l2">
+    <summary><h2>2차시 — 약속에 이름 붙이기</h2></summary>
     <p class="sub">패턴 말하기 → 정리(일반화 ①·용어) → 토론 → 전이 · 준비물:
       1차시 클래스룸 기록, 문자 코드표, 같은 파일을 두 방식으로 열어 보일 준비,
       2차시 학습지(아래 클래스룸 과제 상자에서 내려받기),
@@ -617,12 +623,12 @@
           띄웁니다</li>
       </ul>
     </div>
-  </div>
+  </details>
 
 
   <!-- ═══════════ 3차시 ═══════════ -->
-  <div class="lesson" id="l3">
-    <h2>3차시 — 직접 표현해보기</h2>
+  <details class="lesson" id="l3">
+    <summary><h2>3차시 — 직접 표현해보기</h2></summary>
     <p class="sub">교과서 실습 → 일반화 ② 확인 · 준비물: 교과서, 학생 기기,
       2차시 패들렛(학급 문장을 고정해 둔 것),
       3차시 학습지(아래 클래스룸 과제 상자에서 내려받기),
@@ -725,7 +731,7 @@
       특히 <b>동시 만족 도전에서 실제로 발견이 일어났는지</b>를 남겨두세요.
       이 단원 설계의 핵심 장치라, 작동하지 않았다면 앱이나 발문을 고칠 근거가
       됩니다.</p>
-  </div>
+  </details>
 
 </div>
 
@@ -735,5 +741,13 @@
   사본입니다 — 설계를 고칠 때는 둘을 함께 고칩니다.
 </footer>
 
+<script>
+  document.querySelectorAll('.jump a[href^="#l"]').forEach(link => {
+    link.addEventListener('click', () => {
+      const lesson = document.querySelector(link.getAttribute('href'));
+      if (lesson) lesson.open = true;
+    });
+  });
+</script>
 </body>
 </html>

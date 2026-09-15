@@ -156,6 +156,12 @@
     scroll-margin-top: 56px;
   }
   .lesson h2 { margin: 0 0 2px; font-size: 19px; letter-spacing: -0.01em; }
+  .lesson > summary { cursor: pointer; list-style: none; }
+  .lesson > summary::-webkit-details-marker { display: none; }
+  .lesson > summary h2::before { content: "▶"; display: inline-block; margin-right: 8px; font-size: 13px; transition: transform .15s ease; }
+  .lesson[open] > summary h2::before { transform: rotate(90deg); }
+  .lesson > summary h2 { margin-bottom: 0; }
+  .lesson[open] > summary { margin-bottom: 12px; }
   .lesson .sub { color: var(--dim); font-size: 14px; margin: 0 0 14px; }
 
   h3 { margin: 20px 0 8px; font-size: 15px; color: var(--accent); }
@@ -532,8 +538,8 @@
 
 
   <!-- ═══════════ 1차시 ═══════════ -->
-  <div class="lesson" id="l1">
-    <h2>1차시 — 골라 담고 표를 읽기</h2>
+  <details class="lesson" id="l1">
+    <summary><h2>1차시 — 골라 담고 표를 읽기</h2></summary>
     <p class="sub"><b>수업 목표:</b> 같은 수의 데이터를 사용해도 어떤 종류를
       선택하느냐에 따라 인공지능의 판단 결과가 달라짐을 설명한다.<br>
       지난 수업 되짚기 → 여섯 장 고르기 → 0인 종류 줄이기 → 창고 전체 확인하기 ·
@@ -631,12 +637,12 @@
         2차시에도 이어서 사용하므로 1차시에는 제출하지 않고 저장하게 합니다.
         2차시용 학습지는 따로 없습니다.</p>
     </div>
-  </div>
+  </details>
 
 
   <!-- ═══════════ 2차시 ═══════════ -->
-  <div class="lesson" id="l2">
-    <h2>2차시 — 이름 붙이고 사람 쪽으로</h2>
+  <details class="lesson" id="l2">
+    <summary><h2>2차시 — 이름 붙이고 사람 쪽으로</h2></summary>
     <p class="sub"><b>수업 목표:</b> 데이터에 빠진 종류가 있으면 인공지능의
       판단이 한쪽으로 치우칠 수 있음을 설명하고, 이를 편향·표본·대표성과
       연결한다.<br>1차시 결과 비교 → 공통점 찾기 → 교과서 용어 연결 → 생활 속
@@ -725,7 +731,7 @@
       <li>전체 결과와 종류별 결과를 함께 설명한 문장을 골라 학급 문장으로
         정리합니다.</li>
     </ul>
-  </div>
+  </details>
 
 </div>
 
@@ -735,5 +741,13 @@
   이 페이지는 사본입니다 — 설계를 고칠 때는 둘을 함께 고칩니다.
 </footer>
 
+<script>
+  document.querySelectorAll('.jump a[href^="#l"]').forEach(link => {
+    link.addEventListener('click', () => {
+      const lesson = document.querySelector(link.getAttribute('href'));
+      if (lesson) lesson.open = true;
+    });
+  });
+</script>
 </body>
 </html>
