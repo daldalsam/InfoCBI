@@ -355,7 +355,7 @@
 뜻입니다. 총괄에서 정해 이 표에 적으면 그게 「그대로 쓰는 이름」이 됩니다.
 
 ```
-info-class-apps/
+infoCBI/
 ├── CLAUDE.md
 ├── index.html
 ├── docs/

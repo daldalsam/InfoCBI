@@ -20,7 +20,7 @@
 자리가 필요하기 때문입니다. 그 폴더에는 `index.html`만 없습니다.
 
 ```
-info-class-apps/
+infoCBI/
 ├── CLAUDE.md                     최상위 지침 (전체 공통 규칙)
 ├── index.html                    메인 목차 페이지 (각 앱으로 링크)
 ├── docs/
@@ -312,17 +312,31 @@ teacher/<단원 경로>/<단원명>.html
   학생·교사용 웹페이지는 같은 저장소를 넷리파이(Netlify)에 연결해 별도로 배포합니다.
 - 푸시하면 자동으로 배포가 갱신됩니다.
 
-**배포 주소** — `https://daldalsam-info.netlify.app`
+**배포 주소** — `https://infocbi.netlify.app`
 
 | 용도 | 주소 |
 |---|---|
 | 학생용 첫 페이지 | `/` |
 | 앱 — 점 몇 개면 될까? | `/02-data/01-digital-data/` |
 | 앱 — 그림일까, 글자일까, 수일까? | `/02-data/02-representation/` |
+| 앱 — 다음에 이어서 하려면 무엇을 적어야 할까? | `/03-algorithm-programming/01-problem-state/` |
+| 앱 — 어디까지 바꿔도 될까? | `/03-algorithm-programming/02-abstraction/` |
+| 앱 — 누가 해도 똑같을까? | `/03-algorithm-programming/03-expression/` |
+| 앱 — 어느 길이 더 좋을까? | `/03-algorithm-programming/04-analysis/` |
+| 앱 — 어떻게 가려낼까? | `/04-ai/01-ai-concept/` |
+| 앱 — 무엇을 보여 줄까? | `/04-ai/02-data-learning/` |
 | 교사용 (동료 공유용) | `/teacher/` |
+
+Ⅳ-2의 두 단원(`03-ai-practice`·`04-ai-ethics`)은 앱이 없어 주소도 없습니다.
+그 경로를 직접 열면 404입니다.
 
 학생에게는 **앱 주소만** 클래스룸으로 안내합니다. 사이트 이름을 다시 바꾸면
 이미 나눠준 링크가 모두 죽으므로 바꾸지 않습니다.
+
+**예외 — 2026-09-20에 `daldalsam-info`에서 `infocbi`로 한 번 바꿨습니다.**
+저장소를 `daldalsam/InfoCBI`로 옮기면서 이름을 맞춘 것이고, **아직 학생에게
+링크를 나눠주기 전이라 죽을 링크가 없었기 때문에** 가능했습니다. 클래스룸에
+한 번이라도 올린 뒤에는 위 규칙대로 바꾸지 않습니다.
 
 ## 환경
 
@@ -352,8 +366,15 @@ teacher/<단원 경로>/<단원명>.html
 - [x] `teacher/index.html` — 교사용 첫 페이지. 단원 목록·차시 수·지도안 링크
       (설계 내용은 단원별 지도안 페이지에)
 - [x] `netlify.toml` — 배포 시 `.md`와 `.claude`를 제외 (직접 열면 404)
-- [x] **넷리파이 연결 및 배포** — `daldalsam-info.netlify.app`.
+- [x] **넷리파이 연결 및 배포** — `infocbi.netlify.app`.
       `.md` 7개와 `.claude`가 실제로 404인 것까지 확인 완료
+- [x] **넷리파이를 이 저장소로 옮김 (2026-09-20).** 사이트 이름을
+      `daldalsam-info` → `infocbi`로 바꾸고, 연결 저장소를
+      `daldalsam/info-class-apps`(비공개) → `daldalsam/InfoCBI`(공개)로 교체.
+      9월에 고친 교사용 지도안 11개가 이 배포로 처음 반영됐습니다.
+      `.md`·`.claude`·`netlify.toml`이 404인 것과 앱 8개가 열리는 것까지 확인.
+      **옛 저장소는 어느 사이트에도 연결돼 있지 않습니다** — 거기 커밋해도
+      배포되지 않으니 주의
 - [x] 학습지 5종 개명 — `worksheet-<대단원번호>-<단원>-lessonN.docx` 규칙 적용,
       지도안 2종의 다운로드 링크도 함께
 - [x] **학생 기기에서 실제 확인** — 태블릿·크롬북에서 `02-representation`
