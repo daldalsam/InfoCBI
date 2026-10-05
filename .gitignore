@@ -10,6 +10,10 @@ ehthumbs.db
 Desktop.ini
 $RECYCLE.BIN/
 
+# Claude Code 개인 설정 — 허용한 명령 목록이 쌓이고 토큰이 섞일 수 있습니다.
+# 맥북은 전역 설정으로 막혀 있지만, 다른 기기에서도 안 올라가게 여기에도 둡니다
+.claude/settings.local.json
+
 # 편집기 개인 설정 (기기마다 달라서 공유하지 않습니다)
 .vscode/
 .idea/
