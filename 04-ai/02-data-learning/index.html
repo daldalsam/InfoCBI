@@ -16,7 +16,11 @@
   --잔글: #475569;          /* 작은 안내 글자. 칸을 칠하는 데는 쓰지 않는다 */
   --테두리: #cbd5e1;
   --바탕: #f8fafc;
-  --무늬잉크: #334155;      /* 흰 바탕과 11.2:1 — 지킬 선의 3:1을 넉넉히 넘는다 */
+  /* 재질 스티커 — 다섯 종류가 모두 같은 색이다. 색은 꾸밈일 뿐 종류를 가르지
+     않는다(종류는 무늬와 모양으로 가른다, lesson.md 「시각 언어」). 판정 색(초록·
+     갈색)·담김(파랑)과 겹치지 않게 보라를 골랐다. */
+  --무늬잉크: #4c1d95;      /* 흰 바탕과 11.9:1, 스티커 바탕과 10.3:1 — 지킬 선 3:1 */
+  --무늬바탕: #ede9fe;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; }
@@ -118,19 +122,25 @@ button { font-family: inherit; cursor: pointer; }
 .세상격자 { grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); }
 
 .카드 {
-  display: flex; flex-direction: column; gap: 2px;
-  padding: 4px; border: 2px solid var(--테두리); border-radius: 10px;
-  background: #fff; text-align: left; color: var(--먹);
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 4px 4px 5px; border: 2px solid var(--테두리); border-radius: 14px;
+  background: #fff; text-align: center; color: var(--먹);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .07);
 }
 button.카드 { touch-action: manipulation; }
-.카드머리 { display: flex; align-items: center; gap: 3px; }
+.카드머리 { display: flex; align-items: center; gap: 3px; align-self: stretch; min-height: 21px; }
 .카드머리 .틈 { flex: 1; }
-.카드 .이름 { font-size: 11.5px; line-height: 1.2; word-break: keep-all; }
+.카드 .스티커 { line-height: 0; margin-top: -2px; }
+.카드 .이름 { font-size: 12px; font-weight: 700; line-height: 1.2; word-break: keep-all; }
 /* 「깨끗」은 표시가 없다 — 줄만 비워 두어 카드 높이를 맞춘다. */
 .카드 .얼룩 { font-size: 10px; color: var(--먹); min-height: 13px; }
-.무늬바탕 { fill: #fff; stroke: var(--무늬잉크); stroke-width: 1.4; }
-.무늬칠 { stroke: none; }
-.무늬줄 { fill: none; stroke: var(--무늬잉크); }
+.무늬몸 { fill: var(--무늬바탕); }
+.무늬몸, .무늬선 {
+  stroke: var(--무늬잉크); stroke-width: 2.4;
+  stroke-linejoin: round; stroke-linecap: round;
+}
+.무늬선 { fill: none; }
+.무늬빛 { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; }
 
 /* ♻는 기기에 따라 컬러 이모지로 그려져 아래 color 가 무시될 수 있다. 글자
    표현을 요청하고(U+FE0E ＋ font-variant-emoji), 그래도 이모지로 뜨는 기기를
@@ -153,7 +163,7 @@ button.카드 { touch-action: manipulation; }
 }
 .창고카드[aria-pressed="true"] { border-color: var(--담김); background: var(--담김바탕); }
 
-.기계줄 { display: flex; align-items: center; gap: 2px; margin-top: 1px; }
+.기계줄 { display: flex; align-items: center; justify-content: center; gap: 2px; margin-top: 1px; }
 /* 틀린 카드는 굵은 테두리 ＋ ✗ — 색에 기대지 않는다(검수 22). */
 .세상카드.틀림 { border: 3px solid var(--먹); padding: 3px; }
 .틀림표 { font-size: 14px; font-weight: 700; color: var(--먹); }
@@ -176,17 +186,10 @@ button:focus { outline: none; }
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <!-- 종류는 색이 아니라 무늬로 가른다. ▤ 가로줄과 ▥ 세로줄이 30px에서
-         서로 구별되어야 활동 3의 천장 발견(창고에 ▥가 없다)이 성립한다. -->
-    <pattern id="무늬-가로줄" width="8" height="5" patternUnits="userSpaceOnUse">
-      <path d="M0 2.5 H8" stroke="var(--무늬잉크)" stroke-width="2" fill="none"/>
-    </pattern>
-    <pattern id="무늬-세로줄" width="5" height="8" patternUnits="userSpaceOnUse">
-      <path d="M2.5 0 V8" stroke="var(--무늬잉크)" stroke-width="2" fill="none"/>
-    </pattern>
+    <!-- 여러 재질 ▩의 촘촘빗금. 나머지 무늬는 무늬만들기()가 선으로 직접 그린다. -->
     <pattern id="무늬-촘촘빗금" width="5" height="5" patternUnits="userSpaceOnUse">
       <path d="M0 5 L5 0 M-1 1 L1 -1 M4 6 L6 4 M0 0 L5 5 M-1 4 L1 6 M4 -1 L6 1"
-            stroke="var(--무늬잉크)" stroke-width="1.3" fill="none"/>
+            stroke="var(--무늬잉크)" stroke-width="1.4" fill="none"/>
     </pattern>
   </defs>
 </svg>
@@ -493,25 +496,39 @@ function 조사(낱말, 받침있을때, 받침없을때) {
   return 받침 ? 받침있을때 : 받침없을때;
 }
 
-// ── 무늬 조각 ────────────────────────────────────────────────────────
-// 30 단위 네모 한 장. 플라스틱만 무늬 없이 테두리로 남는다(▢ 빈칸).
+// ── 무늬 조각 (재질 스티커) ──────────────────────────────────────────
+// 40 단위 스티커 한 장. 무늬(▤ 가로줄 · ▢ 빈칸 · ◇ 마름모 · ▩ 촘촘빗금 ·
+// ▥ 세로줄)는 그대로 두고, 바깥 모양을 재질답게 그려 한 번 더 가른다 —
+// 종이는 귀퉁이 접힌 종이, 영수증은 아래가 찢긴 띠, 여러 재질은 윗변이 톱니인
+// 봉지. 특히 ▤와 ▥가 줄 방향에 더해 모양으로도 갈리므로, 활동 3의 천장
+// 발견(창고에 ▥가 없다)이 작은 크기에서도 무너지지 않는다.
+// 기록지·지도안은 무늬 글자(▤▢◇▩▥)로 적혀 있어 이 모양을 바꿔도 고칠 것이 없다.
 function 무늬만들기(종류, 크기) {
   const svg = svg요소('svg', {
-    viewBox: '0 0 30 30', width: 크기, height: 크기, 'aria-hidden': 'true',
+    viewBox: '0 0 40 40', width: 크기, height: 크기, 'aria-hidden': 'true',
   });
-  svg요소('rect', { x: 1.2, y: 1.2, width: 27.6, height: 27.6, rx: 5, class: '무늬바탕' }, svg);
+  const 그리기 = (d, 갈래) => svg요소('path', { d, class: 갈래 }, svg);
   const 무늬 = 무늬표[종류];
-  // 마름모만 되풀이 무늬가 아니라 큰 도형 하나다 — 45° 격자를 되풀이하면
-  // 촘촘빗금(▩)과 30px에서 구별되지 않는다. 지킬 선이 짚은 자리다.
-  if (무늬 === '마름모') {
-    svg요소('path', {
-      d: 'M15 4 L26 15 L15 26 L4 15 Z', class: '무늬줄', 'stroke-width': 2.6,
-    }, svg);
-  } else if (무늬 !== '빈칸') {
-    svg요소('rect', {
-      x: 2.4, y: 2.4, width: 25.2, height: 25.2, rx: 4,
-      class: '무늬칠', fill: `url(#무늬-${무늬})`,
-    }, svg);
+  if (무늬 === '가로줄') {
+    그리기('M9 4 H26 L33 11 V36 H9 Z', '무늬몸');
+    그리기('M26 4 V11 H33', '무늬선');
+    그리기('M13 17 H29 M13 22 H29 M13 27 H29 M13 32 H24', '무늬선');
+  } else if (무늬 === '빈칸') {
+    // 무늬 없이 테두리만 남는 것이 ▢의 정체라 속에 선을 넣지 않는다. 흰 빛줄기만.
+    svg요소('rect', { x: 6, y: 6, width: 28, height: 28, rx: 9, class: '무늬몸' }, svg);
+    그리기('M12 17 Q12 12 17 12', '무늬빛');
+  } else if (무늬 === '마름모') {
+    // 마름모는 되풀이 무늬가 아니라 큰 도형 하나다 — 45° 격자를 되풀이하면
+    // 촘촘빗금(▩)과 작은 크기에서 구별되지 않는다. 지킬 선이 짚은 자리다.
+    그리기('M20 4 L36 20 L20 36 L4 20 Z', '무늬몸');
+    그리기('M14 18 L19 13', '무늬빛');
+    그리기('M32 3 V9 M29 6 H35', '무늬선');
+  } else if (무늬 === '촘촘빗금') {
+    그리기('M6 10 L10 6 L14 10 L18 6 L22 10 L26 6 L30 10 L34 6 V34 H6 Z', '무늬몸');
+    svg요소('rect', { x: 8, y: 13, width: 24, height: 19, fill: 'url(#무늬-촘촘빗금)' }, svg);
+  } else if (무늬 === '세로줄') {
+    그리기('M10 4 H30 V33 L27 36 L23.5 33 L20 36 L16.5 33 L13 36 L10 33 Z', '무늬몸');
+    그리기('M15 9 V28 M20 9 V28 M25 9 V28', '무늬선');
   }
   return svg;
 }
@@ -566,13 +583,14 @@ for (const 카드 of 창고카드) {
   단추.type = 'button';
   단추.setAttribute('aria-pressed', 'false');
   const 머리 = 요소('span', '카드머리');
-  머리.appendChild(무늬만들기(카드.종류, 30));
   머리.appendChild(요소('span', '틈'));
   const 담김표 = 요소('span', '담김표', '✓');
   담김표.style.display = 'none';
   머리.appendChild(담김표);
   머리.appendChild(갈래쪽(카드.정답, null).묶음);
-  단추.append(머리, 요소('span', '이름', 카드.이름),
+  const 스티커 = 요소('span', '스티커');
+  스티커.appendChild(무늬만들기(카드.종류, 40));
+  단추.append(머리, 스티커, 요소('span', '이름', 카드.이름),
     요소('span', '얼룩', 카드.상태 === '묻음' ? '● 묻음' : ''));
   단추.addEventListener('click', () => 창고누르기(카드));
   초점달기(단추);
@@ -589,9 +607,10 @@ for (const 카드 of 세상카드) {
   const 칸 = 요소('div', '카드 세상카드');
   칸.appendChild(요소('span', '숨김', `${카드.종류} ${카드.상태}`));
   const 머리 = 요소('span', '카드머리');
-  머리.appendChild(무늬만들기(카드.종류, 30));
   머리.appendChild(요소('span', '틈'));
   머리.appendChild(갈래쪽(카드.정답, '정답').묶음);
+  const 스티커 = 요소('span', '스티커');
+  스티커.appendChild(무늬만들기(카드.종류, 40));
   const 기계줄 = 요소('span', '기계줄');
   기계줄.appendChild(요소('span', '잔', '기계'));
   const 기계딱지 = 요소('span', '갈래 없음', '—');
@@ -602,7 +621,7 @@ for (const 카드 of 세상카드) {
   틀림표.setAttribute('aria-label', '정답과 다름');
   틀림표.style.display = 'none';
   기계줄.append(기계딱지, 틀림표);
-  칸.append(머리, 요소('span', '이름', 카드.이름),
+  칸.append(머리, 스티커, 요소('span', '이름', 카드.이름),
     요소('span', '얼룩', 카드.상태 === '묻음' ? '● 묻음' : ''), 기계줄);
   화면.세상격자.appendChild(칸);
   세상칸참조[카드.번호] = { 칸, 기계딱지, 틀림표 };
