@@ -62,10 +62,12 @@ button { cursor: pointer; }
 .칸무늬 { fill: none; pointer-events: none; }
 .칸무늬.모름 { fill: url(#빗금); }
 .칸무늬.다툼 { fill: url(#교차빗금); }
-.세모, .동그라미, .도장테 { display: none; pointer-events: none; }
-.세모.보임, .동그라미.보임, .도장테.보임 { display: inline; }
-.세모 { fill: var(--스팸); }
-.동그라미 { fill: var(--정상); }
+/* 스팸 = 낚싯바늘이 꽂힌 빨간 편지, 정상 = 체크 표시 파란 방패(lesson.md 「시각
+   언어」). 편지(네모)와 방패는 겉모양부터 달라 색 없이도 갈리고, 두 그림의 검은
+   굵은 테두리가 칸 바탕과의 대비를 맡는다. */
+.판정그림, .도장테 { display: none; pointer-events: none; }
+.판정그림.보임, .도장테.보임 { display: inline; }
+.글그림 { width: 1.25em; height: 1.25em; vertical-align: -0.28em; }
 .도장테 { fill: none; stroke-width: 4; }
 .도장테.스팸 { stroke: var(--스팸); }
 .도장테.정상 { stroke: var(--정상); }
@@ -79,7 +81,7 @@ button { cursor: pointer; }
 .초점테.보임 { opacity: .9; }
 
 /* 판정이 방금 바뀐 칸만 한 번 테두리로 강조 — 상시 반복 아님. 바탕을 덮지
-   않으므로 결과 색과 ▲·●가 그대로 보인다(lesson.md 「하지 않을 것」).
+   않으므로 결과 색과 스팸·정상 그림이 그대로 보인다(lesson.md 「하지 않을 것」).
    세는 것은 「방금 바뀐 칸」 숫자가 맡고 이 테두리는 보조다(검수 12) —
    움직임 줄이기 설정으로 생략돼도 정보는 숫자에 남는다. */
 .반짝덮개 { fill: none; stroke: none; pointer-events: none; }
@@ -110,9 +112,11 @@ button { cursor: pointer; }
    그래도 없으면 단추가 아랫줄로 내려간다. */
 .규칙목록 li {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 6px;
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 10px;
-  padding: 6px 8px; font-size: 14px;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .07);
+  padding: 6px 8px; font-size: 14px; font-weight: 600;
 }
+.규칙목록 li.빈목록 { box-shadow: none; font-weight: 400; }
 .규칙목록 li.빈목록 { color: var(--회); border-style: dashed; justify-content: center; font-size: 13px; }
 .규칙기호 { font-size: 15px; }
 .스팸글 { color: var(--스팸); }
@@ -197,7 +201,7 @@ button { cursor: pointer; }
     </div>
   </div>
   <div class="조작쪽">
-    <p class="누르기안내">칸을 누를 때마다 <b class="스팸글">▲ 스팸</b> → <b class="정상글">● 정상</b> → 지움</p>
+    <p class="누르기안내">칸을 누를 때마다 <b class="스팸글"><img class="글그림" data-판정="스팸" alt=""> 스팸</b> → <b class="정상글"><img class="글그림" data-판정="정상" alt=""> 정상</b> → 지움</p>
     <div class="되돌리기묶음">
       <button id="B되돌리기" class="보통단추">↩ B판 하나 되돌리기</button>
       <button id="B처음으로" class="보통단추">↺ B판 처음으로</button>
@@ -364,6 +368,15 @@ function 판정차이수(전칸들, 새칸들) {
 <script>
 // ── 화면 ─────────────────────────────────────────────────────────────
 
+// 스팸·정상 그림 — AI(코덱스)로 직접 생성한 128px PNG를 파일 안에 넣었다.
+// 앱이 index.html 하나로 완결되게 하려고 따로 파일을 두지 않는다(최상위 CLAUDE.md).
+// 스팸 = 낚싯바늘이 꽂힌 빨간 편지, 정상 = 체크 표시 파란 방패(lesson.md 「시각 언어」).
+const 판정그림 = {
+  스팸: 'data:image/png;base64,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',
+  정상: 'data:image/png;base64,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',
+};
+for (const 그림 of document.querySelectorAll('img.글그림')) 그림.src = 판정그림[그림.dataset.판정];
+
 // SVG 요소를 만드는 짧은 도우미
 function svg요소(태그, 속성 = {}, 부모 = null) {
   const 것 = document.createElementNS('http://www.w3.org/2000/svg', 태그);
@@ -447,13 +460,15 @@ function 판만들기(붙일곳, 종류) {
   for (const { 링크, 느낌표 } of 칸목록()) {
     const { x, y } = 칸자리(링크, 느낌표);
     const 무리 = svg요소('g', {}, svg);
-    const 바탕 = svg요소('rect', { x: x + 1, y: y + 1, width: 칸크기 - 2, height: 칸크기 - 2, rx: 6, class: '칸바탕 빈' }, 무리);
-    const 무늬 = svg요소('rect', { x: x + 1, y: y + 1, width: 칸크기 - 2, height: 칸크기 - 2, rx: 6, class: '칸무늬' }, 무리);
+    const 바탕 = svg요소('rect', { x: x + 1, y: y + 1, width: 칸크기 - 2, height: 칸크기 - 2, rx: 9, class: '칸바탕 빈' }, 무리);
+    const 무늬 = svg요소('rect', { x: x + 1, y: y + 1, width: 칸크기 - 2, height: 칸크기 - 2, rx: 9, class: '칸무늬' }, 무리);
     const cx = x + 칸크기 / 2, cy = y + 칸크기 / 2;
-    const 세모 = svg요소('path', { d: `M${cx} ${cy - 9.5} L${cx + 10} ${cy + 7.5} L${cx - 10} ${cy + 7.5} Z`, class: '세모' }, 무리);
-    const 동그라미 = svg요소('circle', { cx, cy, r: 8.5, class: '동그라미' }, 무리);
-    const 도장테 = svg요소('rect', { x: x + 3, y: y + 3, width: 칸크기 - 6, height: 칸크기 - 6, rx: 5, class: '도장테' }, 무리);
-    const 반짝덮개 = svg요소('rect', { x: x + 1, y: y + 1, width: 칸크기 - 2, height: 칸크기 - 2, rx: 6, class: '반짝덮개' }, 무리);
+    // 그림 28단위 — 찍은 예시의 굵은 테두리(안쪽 끝 5단위) 안에 넉넉히 든다.
+    const 그림자리 = { x: cx - 14, y: cy - 14, width: 28, height: 28 };
+    const 스팸그림 = svg요소('image', { ...그림자리, href: 판정그림.스팸, class: '판정그림' }, 무리);
+    const 정상그림 = svg요소('image', { ...그림자리, href: 판정그림.정상, class: '판정그림' }, 무리);
+    const 도장테 = svg요소('rect', { x: x + 3, y: y + 3, width: 칸크기 - 6, height: 칸크기 - 6, rx: 8, class: '도장테' }, 무리);
+    const 반짝덮개 = svg요소('rect', { x: x + 1, y: y + 1, width: 칸크기 - 2, height: 칸크기 - 2, rx: 9, class: '반짝덮개' }, 무리);
     let 잡기 = null;
     if (종류 === 'B') {
       const 초점테 = svg요소('rect', { x: x + 0.5, y: y + 0.5, width: 칸크기 - 1, height: 칸크기 - 1, rx: 7, class: '초점테' }, 무리);
@@ -465,7 +480,7 @@ function 판만들기(붙일곳, 종류) {
       잡기.addEventListener('focus', () => 초점테.classList.toggle('보임', 초점테보일까(잡기)));
       잡기.addEventListener('blur', () => 초점테.classList.remove('보임'));
     }
-    칸참조[`${링크},${느낌표}`] = { 바탕, 무늬, 세모, 동그라미, 도장테, 반짝덮개, 잡기 };
+    칸참조[`${링크},${느낌표}`] = { 바탕, 무늬, 스팸그림, 정상그림, 도장테, 반짝덮개, 잡기 };
   }
   return { svg, 칸참조 };
 }
@@ -510,8 +525,8 @@ function 반짝이기(요소) {
 function 칸그리기(참조, 판정, 도장판정) {
   참조.바탕.setAttribute('class', `칸바탕 ${판정}${도장판정 ? ' 도장' : ''}`);
   참조.무늬.setAttribute('class', `칸무늬${판정 === '모름' || 판정 === '다툼' ? ' ' + 판정 : ''}`);
-  참조.세모.classList.toggle('보임', 판정 === '스팸');
-  참조.동그라미.classList.toggle('보임', 판정 === '정상');
+  참조.스팸그림.classList.toggle('보임', 판정 === '스팸');
+  참조.정상그림.classList.toggle('보임', 판정 === '정상');
   참조.도장테.setAttribute('class', `도장테${도장판정 ? ` ${도장판정} 보임` : ''}`);
 }
 
@@ -530,9 +545,10 @@ function 규칙목록그리기() {
   }
   for (const 규칙 of 규칙들) {
     const 줄 = document.createElement('li');
-    const 기호 = document.createElement('span');
-    기호.className = `규칙기호 ${규칙.판정 === '스팸' ? '스팸글' : '정상글'}`;
-    기호.textContent = 규칙.판정 === '스팸' ? '▲' : '●';
+    const 기호 = document.createElement('img');
+    기호.className = '글그림 규칙기호';
+    기호.src = 판정그림[규칙.판정];
+    기호.alt = '';
     const 말 = document.createElement('span');
     말.className = '규칙말';
     말.textContent = 규칙글(규칙);
@@ -629,8 +645,8 @@ function 칸찍기(링크, 느낌표) {
   예시들 = 예시찍기(예시들, 링크, 느낌표);
   전부갱신('B');
   const 이름 = `(링크 ${링크}·느낌표 ${느낌표})`;
-  if (전 === '없음') 상태알림(`${이름} 칸에 스팸 ▲ 예시를 찍었어요.`);
-  else if (전 === '스팸') 상태알림(`${이름} 칸을 정상 ● 예시로 바꿨어요.`);
+  if (전 === '없음') 상태알림(`${이름} 칸에 스팸 예시를 찍었어요.`);
+  else if (전 === '스팸') 상태알림(`${이름} 칸을 정상 예시로 바꿨어요.`);
   else 상태알림(`${이름} 칸의 예시를 지웠어요.`);
 }
 
@@ -675,7 +691,7 @@ for (const 축 of 축선택지) {
 });
 for (const 판정 of 판정선택지) {
   const 것 = document.createElement('option');
-  것.value = 판정; 것.textContent = 판정 === '스팸' ? '스팸 ▲' : '정상 ●';
+  것.value = 판정; 것.textContent = 판정;   // 고르기 칸에는 그림을 넣을 수 없어 낱말만
   화면.판정고르기.appendChild(것);
 }
 화면.개수방향고르기.value = '1';   // 「2개 이상」이 처음에 보이게
