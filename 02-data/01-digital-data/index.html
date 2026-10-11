@@ -14,7 +14,8 @@
        한다. 원본은 배경이고 복원이 주인공인 관계를 지킬 것 */
     --wave: #7c8ba1;
     --step: #2563eb;      /* 점만으로 다시 그린 계단 곡선 */
-    --dot: #1e3a8a;       /* 채집점 */
+    --dot: #1e3a8a;       /* 채집점 테두리 (점이 많을 때는 이 색 하나로 칠한다) */
+    --dot-fill: #3b82f6;  /* 채집점 몸통 — 점이 적을 때 스티커처럼 그린다 */
     --grid: #e8edf4;
     --track: #dbe3ec;
   }
@@ -49,7 +50,7 @@
     min-height: 0;
     position: relative;
     background: #fff;
-    border-radius: 12px;
+    border-radius: 16px;
     box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
   }
   .stage canvas {
@@ -85,22 +86,36 @@
   /* 조작부 — 아래에 */
   .panel { flex: none; }
 
+  /* 숫자 두 개를 둥근 카드로 — Ⅳ-1의 두 앱과 같은 꾸밈(둥근 모서리·옅은 그림자·
+     AI로 그린 스티커 그림). 카드 둘이 같은 숫자를 함께 바꾸는 것이 이 앱의
+     트레이드오프라 화살표로 잇는다. */
   .readout {
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 14px;
+    align-items: stretch;
+    gap: 6px;
     margin-bottom: 2px;
-    font-size: 15px;
-    color: var(--dim);
   }
-  .readout b {
+  .stat {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, .08);
+  }
+  .stat img { width: 34px; height: 34px; flex: none; }
+  .stat .label { font-size: 13px; font-weight: 600; color: var(--dim); line-height: 1.2; }
+  .stat .value { font-size: 15px; color: var(--dim); line-height: 1.1; }
+  .stat b {
     font-size: 26px;
     font-weight: 700;
     color: var(--step);
     font-variant-numeric: tabular-nums;
   }
-  .readout .arrow { color: #94a3b8; }
+  .readout .arrow { align-self: center; color: #94a3b8; font-size: 15px; }
 
   .ends {
     display: flex;
@@ -121,11 +136,13 @@
   input[type=range]::-webkit-slider-runnable-track {
     height: 10px; border-radius: 999px; background: var(--track);
   }
+  /* 손잡이도 채집점과 같은 스티커 — 밝은 몸통 ＋ 진한 테두리 ＋ 흰 빛 */
   input[type=range]::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 30px; height: 30px; margin-top: -10px;
-    border-radius: 50%; background: var(--dot);
-    border: 3px solid #fff;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 32%, rgba(255, 255, 255, .9) 0 3px, transparent 3.5px), var(--dot-fill);
+    border: 3px solid var(--dot);
     box-shadow: 0 1px 4px rgba(15, 23, 42, .35);
   }
   input[type=range]::-moz-range-track {
@@ -133,8 +150,9 @@
   }
   input[type=range]::-moz-range-thumb {
     width: 26px; height: 26px;
-    border-radius: 50%; background: var(--dot);
-    border: 3px solid #fff;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 32%, rgba(255, 255, 255, .9) 0 3px, transparent 3.5px), var(--dot-fill);
+    border: 3px solid var(--dot);
   }
 </style>
 </head>
@@ -152,9 +170,15 @@
 
   <div class="panel">
     <div class="readout">
-      <span>채집한 점 <b id="count">6</b> 개</span>
+      <div class="stat">
+        <img data-icon="net" alt="">
+        <div><div class="label">채집한 점</div><div class="value"><b id="count">6</b> 개</div></div>
+      </div>
       <span class="arrow">→</span>
-      <span>저장할 숫자 <b id="stored">6</b> 개</span>
+      <div class="stat">
+        <img data-icon="card" alt="">
+        <div><div class="label">저장할 숫자</div><div class="value"><b id="stored">6</b> 개</div></div>
+      </div>
     </div>
     <!-- value=16이면 2 + 1022 × 0.16³ ≈ 6개. 위 표시값과 맞춰 둔다 —
          자바스크립트가 곧 덮어쓰지만 첫 화면에 틀린 값이 보이지 않게 -->
@@ -164,6 +188,17 @@
   </div>
 
 <script>
+// 숫자 카드의 그림 — AI(코덱스)로 직접 생성한 96px PNG를 파일 안에 넣었다.
+// 앱이 index.html 하나로 완결되게 하려고 따로 파일을 두지 않는다(최상위 CLAUDE.md).
+// 채집한 점 = 점 하나를 잡은 잠자리채, 저장할 숫자 = 메모리 카드.
+(function () {
+  const icons = {
+    net: 'data:image/png;base64,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',
+    card: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEUbL1lba5jr2mECVKSnxI6rssMAEz0wl94CdddWZYlmqbkgKm5wcHCiqbxUpcvGzoQABj84SnMyRXCrss9hbZCTvJ8APYN6iKosbm5/f/9IVnyLkKo6SHAA//9///+3wdK8y35DUXjZ2eZ7g6EAAP8kOWkEjf0AAAAAGkn92lkGk/wGI1L+/v8BSJILNGvy2GXpLPVJAAAAMHRSTlPiFf///1v+//+f/wQCW///BKPZIF3//yoEAqEscAECJf99KWUBsP8A/v///AL//v/xX2XqAAADkklEQVR42u2ai3biIBCGEd0YTWq92+1lt3uDBDC8/9vtDESbKORizDl217/1eFCcL8PAQAKElzXg7TSPayqQcjHiXL18OdcD/H0UjPBtpziPWwDeOH+YkIxkWUZAWbWghiSTFV5UQ4Di6lkm7STJuppQ8kAt0L4E2R9/vMFLGiX5FchjTVlNKABiPjlefxDUXnuAdQz8VxWBFOyviDG7Hw738GqirUGRB/7UABDxhakdMtFcQ2yoZLnzEwpNpJYICAVrITHEdkrIwNtKRQCBqttW9kE54cVHKAMgAAgYb0aoTQ6bmdJoWi7OmC0PTcciK/61CSBAwFjTlFJ4PVqDNDWiG4wOm8I3KVaYibyVDGH5000oAL4dPNhQDfa01nSGFt6tffhgjBetD0UqWImgnARXE41SnZuYogFaAKB76aF8CJfYm976R7nykhuQugBpigBxDmBsa8bcwkVwxWB0tOgAjLU+B7DMpI9nyGZXADg8QAImjck5oR4gigDhAxwJkeoE8MQAPmbEtNKP0wFXFWQEiAJAz/wAJkKbil9PCPWAjxjoCg9AoZ0o1nzetIlwoIlG3TT3wRCydSm11gEadtMjAWYgIAwaDrSTJqoDIAEnUUh88UUxyJvID8hbSU4KgXY3kfYHmXljkCc+MLJUNTGg2jWStZ4Vs6kTwHA4BKQLQNQAMCs1BeiTXKRtqtA1HsgqQFICHLqpLuQiCHJepB4P6gEwZZqrptT8ZGoLOGViztnYL1M7WVwEYOPRI4geJ/13iuVNbgImZSxO2SUemBjY/5P+5+iS7FJAM0seVQDMqmIrXARxFYDKMFftQ9ZFwg+I7NoU4twTYMDX0izfg6HoBQAp9tXOelk/HqDWC3OPFIougKQCwO1NSH+AiE86Alg1YH77AFELkJ0B8t8GxP0CVNSvB7Ac+25vxvtJFYqvFnaR308uiuHybbLb9pNNo+PTnLCndG1WFZCsw54mHAsgoRBdAM3WRX160BXw+T24KkB8fg/ElRa/N9WL7oA74J7s7jH4X2a0pO8mSu6T/h1w+yO5qpvK/sfBtiuAVADMHSbrRLDP9xeqYsM6a7NffaaQ+PcPIr6TZmt430H4wCzw7YCYQwOy7bmHk1MQ9phC7IzB7ydlb8TzAw2tlR+DmKj4zXtwA3wIurlATvYzyw9DON89E9lBZLHj5f1ScrYBrFaDi7VSdadzeDznnXR2HOgv+tIwm0rYjPIAAAAASUVORK5CYII=',
+  };
+  for (const img of document.querySelectorAll('img[data-icon]')) img.src = icons[img.dataset.icon];
+})();
+
 (function () {
   const canvas  = document.getElementById('stage');
   const ctx     = canvas.getContext('2d');
@@ -261,13 +296,30 @@
 
     // 채집점 — 점이 많아지면 반지름을 줄여야 뭉치지 않는다.
     // 수백 개를 넘으면 화면 폭보다 촘촘해져 어차피 띠처럼 이어져
-    // 보이는데, 그것 자체가 "원본과 구분 불가" 극단값의 모습이다
-    const r = n > 400 ? 1.3 : n > 140 ? 1.7 : n > 60 ? 2.3 : 3.4;
-    ctx.fillStyle = getVar('--dot');
+    // 보이는데, 그것 자체가 "원본과 구분 불가" 극단값의 모습이다.
+    // 60개까지는 스티커처럼(밝은 몸통 ＋ 진한 테두리 ＋ 흰 빛) 크게 그린다 —
+    // 하나하나 「채집한 것」으로 보이게. 그보다 많으면 테두리가 뭉개져
+    // 오히려 지저분하므로 예전처럼 진한 색 하나로 작게 칠한다.
+    const r = n > 400 ? 1.3 : n > 140 ? 1.7 : n > 60 ? 2.3
+            : n > 30 ? 4 : n > 12 ? 5.5 : 7;
+    const sticker = n <= 60;
     for (const p of pts) {
       ctx.beginPath();
       ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-      ctx.fill();
+      if (sticker) {
+        ctx.fillStyle = getVar('--dot-fill');
+        ctx.fill();
+        ctx.strokeStyle = getVar('--dot');
+        ctx.lineWidth = r > 5 ? 2.2 : 1.6;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(p.x - r * 0.35, p.y - r * 0.35, r * 0.28, 0, Math.PI * 2);
+        ctx.fillStyle = '#fff';
+        ctx.fill();
+      } else {
+        ctx.fillStyle = getVar('--dot');
+        ctx.fill();
+      }
     }
   }
 
