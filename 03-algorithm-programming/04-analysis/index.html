@@ -33,9 +33,11 @@ button { font-family: inherit; cursor: pointer; }
 .시간대선택 { display: flex; gap: 6px; margin-left: auto; }
 .시간대단추 {
   min-height: 44px; padding: 6px 14px;
-  font-size: 16px; border-radius: 12px;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 16px; border-radius: 14px;
   border: 2px solid var(--테두리); background: #fff; color: var(--먹);
 }
+.시간대그림 { width: 24px; height: 24px; flex: none; }
 .시간대단추[aria-pressed="true"] {
   border-color: var(--먹); background: var(--먹); color: #fff; font-weight: 700;
 }
@@ -60,7 +62,8 @@ button { font-family: inherit; cursor: pointer; }
 /* ── 지도 ── */
 #지도칸 svg {
   width: 100%; height: auto; display: block;
-  background: #fff; border: 1px solid #e2e8f0; border-radius: 14px;
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .07);
   transition: background-color .3s;
 }
 body[data-시간대="새벽"] #지도칸 svg { background: #eef2ff; }
@@ -112,7 +115,7 @@ body[data-시간대="퇴근길"] #지도칸 svg { background: #fff7ed; }
 .장소원.출발 { fill: #b91c1c; stroke: #7f1d1d; }
 .장소이름 { font-size: 24px; font-weight: 600; fill: var(--먹); text-anchor: middle; pointer-events: none; }
 .장소부제 { font-size: 20px; fill: var(--회); text-anchor: middle; pointer-events: none; }
-.장소그림 { font-size: 30px; text-anchor: middle; pointer-events: none; }
+.장소그림 { pointer-events: none; }
 
 /* ── 도착 기록 ── */
 .지금시간대 {
@@ -125,7 +128,8 @@ body[data-시간대="퇴근길"] .지금시간대 { background: #ffedd5; border-
 
 .도착기록 {
   width: 100%; border-collapse: collapse; background: #fff;
-  border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;
+  border: 1px solid #e2e8f0; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .07);
 }
 .도착기록 th, .도착기록 td { padding: 9px 10px; text-align: left; }
 .도착기록 thead th {
@@ -152,14 +156,16 @@ body[data-시간대="퇴근길"] .지금시간대 { background: #ffedd5; border-
 .차단추 {
   flex: 1 1 210px; min-height: 56px; padding: 8px 12px;
   font-size: 16px; font-weight: 700; color: #fff;
-  border: none; border-radius: 12px;
+  border: none; border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .12);
 }
 #가까운차단추 { background: var(--가까운차); }
 #빠른차단추 { background: var(--빠른차); }
 .보통단추 {
   flex: 1 1 130px; min-height: 48px; padding: 6px 12px;
   font-size: 15px; font-weight: 600;
-  background: #fff; border: 2px solid var(--테두리); border-radius: 12px;
+  background: #fff; border: 2px solid var(--테두리); border-radius: 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .07);
 }
 
 /* ── 상태줄 ── */
@@ -174,9 +180,9 @@ body[data-시간대="퇴근길"] .지금시간대 { background: #ffedd5; border-
 <header class="머리">
   <h1>어느 길이 더 좋을까?</h1>
   <div class="시간대선택" role="group" aria-label="시간대 고르기">
-    <button class="시간대단추" data-시간대="새벽" aria-pressed="false">🌙 새벽</button>
-    <button class="시간대단추" data-시간대="낮" aria-pressed="true">☀️ 낮</button>
-    <button class="시간대단추" data-시간대="퇴근길" aria-pressed="false">🌆 퇴근길</button>
+    <button class="시간대단추" data-시간대="새벽" aria-pressed="false"><img class="시간대그림" data-그림="moon" alt="">새벽</button>
+    <button class="시간대단추" data-시간대="낮" aria-pressed="true"><img class="시간대그림" data-그림="sun" alt="">낮</button>
+    <button class="시간대단추" data-시간대="퇴근길" aria-pressed="false"><img class="시간대그림" data-그림="dusk" alt="">퇴근길</button>
   </div>
 </header>
 
@@ -343,6 +349,17 @@ function 갈림길찾기(지도, 결과, 기준) {
 </script>
 <script>
 // ── 화면 ─────────────────────────────────────────────────────────────
+
+// 시간대 단추와 병원 그림 — AI(코덱스)로 직접 생성한 96px PNG를 파일 안에 넣었다.
+// Ⅲ-1 앞 단원 그림을 견본으로 같은 화풍. 이모지는 기기마다 모양이 달라 바꿨다.
+// 앱이 index.html 하나로 완결되게 하려고 따로 파일을 두지 않는다(최상위 CLAUDE.md).
+const 그림 = {
+  moon: 'data:image/png;base64,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',
+  sun: 'data:image/png;base64,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',
+  dusk: 'data:image/png;base64,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',
+  hospital: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGAAAABgCAMAAADVRocKAAAAkFBMVEUsZ5EhJyttbW0dSF+zs7PoLjJkZWXR0dE7qOVKgLWdHSAqKiqhoaFuFxj29vYkJCQyhahCfrpOTk9KSUpW0v84ODg/QD9On+HAv79AP0BVAABAQD0AAAD9/f0BAQFGt/pIickSFhhLxP4mJib5KjBqamsjIyRJSUnq6+s4ODiKioodHBySkpITIzAVOEhMk9lCY7mDAAAAMHRSTlP+4Qz+///+/////3MV/wmn//9ZlP8E/f///wNLAP/+///6//z//s39//3+fP/+/v+EFHWNAAADwElEQVR42u2ZCXOiMBTHCac3LVvbPTQSEDmq+P2/3SaQQEjCae3szvCfcQYU3m/elRdQOzxZ2gyYATNgBsyA5wP0fgu//20PPBdQXYiALNd7BLCGA+RNBewOuxCiNI3j+D1NU/Ip9f5eHccphO5DAPvYoxSChwDZcwHgqYD9YSMAzFKOANh0NUxnFQkhslndXL/Cg53nui7ik5xUhZk2AAhf6OptPmhtS4Rb2uI8cCBcWZZ13gqAQqE+0oMNIi2Qxo4AOJ/PqwbgGuLLQgh/jALoBCAWEA7R6iwByp/C8YCwkUoH145ZAqwVDM2fQi1NAmRy/VAPSplfB3BY+VgWBwgfBVzF+inMkyARbR8FgCaA2q5EMjEYoO8Vq4TowQTAXu/og52QA9GD8ygP1p/rT05rLBcJAItDkByIgAu+STRC1g9NP3hIPQobgG2h0n55LABUQt5B10jP9gESdsmKL9O4FwAvOxwiD0LN116XRK+F8IH/ivhONuNywaGdDMk4tp3GUmH41MSSyTcgwiEiOwft7gu6+w0AX0uWYi3CHhiyDa0G+JKWCgAqi3X7NADtZ7UHWivgjxwicqoEAFI+YJAHd/9Oc6Dj0XKTBeUNRcqKI1IAkMpESKqIDceOMmUuRHiTF9uxnSgASq2LTt7hLIRRQ7Ydof4tUQPwKxKEA+qxtQgonJZz0KEklK8O4We1FiEZkFSApFOdALaabpC8x01oiLIQdSp1qLUuDzZIGSICMHufDlAyDUBDlEGkdcmA0CmtZVMBt497uz78CjDAg8xmihwOcPc7pPGAwkBEDcgAPtwhS3IGgT8AUFRRxhlIFQAbIsMwcvwBJHMl4FrkET9MKgoIf0l+rXIQQYDvpwYUfWDD/C0genupAUnaV0XRsQYYlYGbGhCciAIKKNKWmLjnDb5q6hK6wTAzjxyAGdCUHiwhaAKyapVeBEwaBIvgVByeAqMey0MAWQsAJ39xYsK31icGNL4KEFCT5NbK/lgPpBBdK8DHGEBQGBgHqKIS8CFq9+AFgiEhmg5oy4HQB+MBtA8YYC32AcrzHIA8x9N6CoAZANiAAIDiWpRWA0cGtCa5fS0qAcdrPbCddgBoBXAGbEcFaJnJgz3oGPqjAC05mL6r+B8AmzEAMBywngRA3wdY1IC+rSPs2pvSgVPYfCNlSmfPiBzscGvHovDWojzAUzmvdONPQH1bdTWTHcM6RK1Pyo8J6fXLEO9SvvxuEXs3Ln7NXyH9St8TftPr/f0zTOvzn0QzYAbMgBnw/wD+Apy3/iAAxrsxAAAAAElFTkSuQmCC',
+};
+for (const 이미지 of document.querySelectorAll('img[data-그림]')) 이미지.src = 그림[이미지.dataset.그림];
 
 // SVG 요소를 만드는 짧은 도우미
 function svg요소(태그, 속성 = {}, 부모 = null) {
@@ -512,13 +529,14 @@ function 지도그리기() {
       svg요소('circle', { r: 17, class: '장소원 출발' }, 무리);
     } else if (이름 === 목표) {
       svg요소('circle', { r: 26, class: '장소원' }, 무리);
-      svg요소('text', { y: 11, class: '장소그림' }, 무리).textContent = '🏥';
+      // 병원 그림 40단위 — 건물이 가로로 넓어 모서리가 반지름 26 원 안에 든다
+      svg요소('image', { x: -20, y: -20, width: 40, height: 40, href: 그림.hospital, class: '장소그림' }, 무리);
     } else {
       svg요소('circle', { r: 13, class: '장소원' }, 무리);
     }
     svg요소('text', { x: 점.이름x ?? 0, y: 점.이름y, class: '장소이름' }, 무리).textContent = 이름;
     if (이름 === 시작) {
-      // 출발지만 따로 알린다 — 병원은 🏥와 가장 큰 원이 이미 도착지를 말한다
+      // 출발지만 따로 알린다 — 병원은 병원 그림과 가장 큰 원이 이미 도착지를 말한다
       svg요소('text', { x: 점.이름x ?? 0, y: 점.이름y + 25, class: '장소부제' }, 무리).textContent = '(출발)';
     }
   }
