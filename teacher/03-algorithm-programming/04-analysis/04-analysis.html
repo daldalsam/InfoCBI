@@ -247,6 +247,9 @@
     details.fold > summary .hint { display: none; }
     .say { border: 1px solid #ccc; }
   }
+  /* 단원 그림 — 교사용 첫 페이지와 같은 스티커(AI(코덱스) 생성). 장식이라 alt를 비운다 */
+  .unithead h1 { display: flex; align-items: center; gap: 12px; }
+  .unithead h1 .unit-icon { width: 44px; height: 44px; flex: none; }
 </style>
 </head>
 <body>
@@ -273,7 +276,7 @@
 <div class="wrap">
 
   <div class="unithead">
-    <h1>Ⅲ-1-04 알고리즘의 분석과 설계</h1>
+    <h1><img class="unit-icon" src="data:image/png;base64,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" alt="">Ⅲ-1-04 알고리즘의 분석과 설계</h1>
     <div class="meta">
       <span>2차시 · 45분 기준</span>
       <span class="chip">앱 사용</span>

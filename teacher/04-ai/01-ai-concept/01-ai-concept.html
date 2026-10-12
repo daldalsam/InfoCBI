@@ -247,6 +247,9 @@
     details.fold > summary .hint { display: none; }
     .say { border: 1px solid #ccc; }
   }
+  /* 단원 그림 — 교사용 첫 페이지와 같은 스티커(AI(코덱스) 생성). 장식이라 alt를 비운다 */
+  .unithead h1 { display: flex; align-items: center; gap: 12px; }
+  .unithead h1 .unit-icon { width: 44px; height: 44px; flex: none; }
 </style>
 </head>
 <body>
@@ -273,7 +276,7 @@
 <div class="wrap">
 
   <div class="unithead">
-    <h1>Ⅳ-1-01 인공지능의 개념과 특성</h1>
+    <h1><img class="unit-icon" src="data:image/png;base64,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" alt="">Ⅳ-1-01 인공지능의 개념과 특성</h1>
     <div class="meta">
       <span>2차시 · 45분 기준</span>
       <span class="chip">앱 사용</span>
