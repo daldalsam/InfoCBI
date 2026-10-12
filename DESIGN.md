@@ -1,6 +1,6 @@
 # 중학교 정보 개념기반 탐구 수업 웹앱(infoCBI) 만든 방법
 
-정리한 날: 2026-10-05 · 상태: 진행 중(사이트 운영 중, 단원 개발·수업 실행 남음) · 원본: 이 파일(`DESIGN.md`) · 사본: 노션 「양성용(개인) 업무 › 개발자 노트 DB」의 같은 제목 페이지 (내용이 바뀌면 두 곳을 함께 고칩니다)
+정리한 날: 2026-10-12 · 상태: 진행 중(사이트 운영 중, 단원 개발·수업 실행 남음) · 원본: 이 파일(`DESIGN.md`) · 사본: 노션 「양성용(개인) 업무 › 개발자 노트 DB」의 같은 제목 페이지 (내용이 바뀌면 두 곳을 함께 고칩니다)
 
 > **한 줄 요약:** 중학교 정보(2022 개정) 개념기반 탐구 수업용 학생 실습 앱 8개와 교사용 지도안·학습지를 HTML·CSS·JavaScript 정적 파일로 만들고, 공개 GitHub 저장소에 푸시하면 넷리파이가 설계 문서(`.md`)를 지운 뒤 자동 배포합니다. 수업 설계(`lesson.md`)가 원본이고, Claude 설계 탭에서 설계 → 코드 탭에서 제작하는 순서로 만듭니다.
 
@@ -113,7 +113,7 @@ GitHub main
 
 - 파일: `index.html`(학생용 첫 페이지), `teacher/index.html`(교사용 첫 페이지), 단원 폴더마다 `CLAUDE.md`(지침·진행 기록)·`lesson.md`(설계 원본)·`index.html`(앱, 8개 단원만), `teacher/<단원>/<단원>.html`(지도안 10개)·`worksheet-*.docx`(학습지 16개), `docs/`(curriculum·textbook·pedagogy·registry·lesson-template), `netlify.toml`, `.claude/launch.json`, `.gitattributes`, `.gitignore`
 - 단원 폴더: `02-data/` 01·02, `03-algorithm-programming/` 01\~04, `04-ai/` 01\~04
-- 저장소: `github.com/daldalsam/InfoCBI` (공개, 2026-09-14 생성, 커밋 167개)
+- 저장소: `github.com/daldalsam/InfoCBI` (공개, 2026-09-14 생성, 커밋 179개)
 - 넷리파이: 사이트 이름 `infocbi`(무료). 로그인 계정·팀·사이트 ID는 공개 저장소라 여기 적지 않고 노션 개발자 노트에만 둠
 - GitHub Pages: `daldalsam.github.io/InfoCBI` (`main`, 루트)
 - 비밀값: 저장소 안에는 없음(2026-10-05 커밋 이력 전체 점검 — 토큰·키·빌드 훅·`.env`·개인 설정 파일 없음. 커밋 작성자 이메일은 커밋 기록으로 공개됨). `.claude/settings.local.json`은 `.gitignore`로 막음. `gh` 인증 토큰은 맥 키체인에만(권한 repo·workflow·gist·read:org — 삭제 권한은 9/20에 뺌). 넷리파이는 GitHub에 설치한 「Netlify」 앱으로 연결(선택한 저장소만 허용)
